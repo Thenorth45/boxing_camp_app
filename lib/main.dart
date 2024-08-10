@@ -12,11 +12,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Boxing Camp App',
+        title: 'Boxing Camp',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.deepPurple,
-            background: Color.fromARGB(255, 226, 174, 174),
+            seedColor: Color.fromARGB(253, 173, 53, 1),
+            background: Color.fromARGB(254, 214, 115, 1),
           ),
           useMaterial3: true,
         ),

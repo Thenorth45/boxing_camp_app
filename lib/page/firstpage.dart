@@ -22,9 +22,9 @@ class _FirstpageState extends State<Firstpage> {
     final response = await http.get(
       Uri.parse('http://localhost:3000/boxerdata'),
       headers: {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'no-cache',
-    },
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+      },
     );
 
     if (response.statusCode == 200) {
@@ -35,10 +35,35 @@ class _FirstpageState extends State<Firstpage> {
     }
   }
 
+  Future<void> deleteUser(String email) async {
+    final response = await http.delete(
+      Uri.parse('http://localhost:3000/boxerdata/$email'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      // Successfully deleted
+      setState(() {
+        futureUsers = fetchUsers(); // Refresh the user list
+      });
+    } else {
+      throw Exception('Failed to delete user');
+    }
+  }
+
+  void _editUser(User user) {
+    // Handle user edit logic here
+    // For example, navigate to an edit page and pass user data
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Color.fromARGB(248, 158, 25, 1),
         title: Text('User Data'),
       ),
       body: Center(
@@ -59,6 +84,19 @@ class _FirstpageState extends State<Firstpage> {
                   return ListTile(
                     title: Text(users[index].fullname),
                     subtitle: Text(users[index].email),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.edit),
+                          onPressed: () => _editUser(users[index]),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () => _confirmDelete(users[index]),
+                        ),
+                      ],
+                    ),
                   );
                 },
               );
@@ -66,6 +104,33 @@ class _FirstpageState extends State<Firstpage> {
           },
         ),
       ),
+    );
+  }
+
+  void _confirmDelete(User user) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirm Deletion'),
+          content: Text('Are you sure you want to delete ${user.fullname}?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                deleteUser(user.email);
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Delete'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

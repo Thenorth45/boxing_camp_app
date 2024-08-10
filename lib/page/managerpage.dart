@@ -21,7 +21,7 @@ class _ManagerHomePageState extends State<ManagerHomePage> {
           ),
         ),
         elevation: 10,
-        backgroundColor: Color.fromARGB(255, 0, 0, 0),
+        backgroundColor: Color.fromARGB(248, 158, 25, 1),
       ),
       body: Column(
         children: [],

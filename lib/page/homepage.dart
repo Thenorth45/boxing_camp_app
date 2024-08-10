@@ -13,18 +13,21 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Logo",
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Color.fromARGB(255, 104, 7, 7),
-          ),
+        leading: IconButton(
+          icon: Icon(Icons.menu),
+          onPressed: () {
+            // เปิด drawer เมื่อกดปุ่มเมนู
+            Scaffold.of(context).openDrawer();
+          },
+        ),
+        title: Image.asset(
+          'assets/images/logomuay.png', // เปลี่ยนเส้นทางเป็นที่อยู่ของภาพโลโก้
+          height: 40, // ปรับขนาดตามที่คุณต้องการ
         ),
         elevation: 10,
-        backgroundColor: Color.fromARGB(255, 0, 0, 0),
+        backgroundColor: Color.fromARGB(248, 158, 25, 1),
         actions: [
-          TextButton(
+          OutlinedButton(
             onPressed: () {
               Navigator.push(
                 context,
@@ -32,32 +35,60 @@ class _HomePageState extends State<HomePage> {
               );
             },
             style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: Colors.green),
+              side: const BorderSide(
+                color: Colors.green,
+                width: 3, // เพิ่มความหนาของกรอบที่นี่
+              ),
             ),
             child: const Text(
               "Sign In",
               style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-              ),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => RegistrationScreen()),
-              );
-            },
-            child: const Text(
-              "Sign Up",
-              style: TextStyle(
-                color: Colors.white,
+                color: Color.fromARGB(255, 0, 0, 0),
                 fontSize: 16,
               ),
             ),
           ),
         ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Color.fromARGB(255, 0, 0, 0),
+              ),
+              child: Image.asset(
+                'assets/images/logomuay.png', // โลโก้ใน drawer header
+                height: 100,
+              ),
+            ),
+            ListTile(
+              title: Text('โปรไฟล์ของฉัน'),
+              onTap: () {
+                // ปิด drawer และไปที่หน้าโปรไฟล์
+                Navigator.pop(context);
+                // คุณสามารถนำทางไปยังหน้าโปรไฟล์ที่นี่
+              },
+            ),
+            ListTile(
+              title: Text('ติดต่อเรา'),
+              onTap: () {
+                // ปิด drawer และไปที่หน้าติดต่อเรา
+                Navigator.pop(context);
+                // คุณสามารถนำทางไปยังหน้าติดต่อเราที่นี่
+              },
+            ),
+            ListTile(
+              title: Text('ออกจากระบบ'),
+              onTap: () {
+                // ปิด drawer และออกจากระบบ
+                Navigator.pop(context);
+                // การออกจากระบบสามารถทำได้ที่นี่
+              },
+            ),
+          ],
+        ),
       ),
       body: Column(
         children: [],
