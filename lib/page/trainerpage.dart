@@ -1,3 +1,4 @@
+import 'package:boxing_camp_app/main.dart';
 import 'package:flutter/material.dart';
 
 class TrainerHomePage extends StatefulWidget {
@@ -23,6 +24,7 @@ class _TrainerHomePageState extends State<TrainerHomePage> {
         elevation: 10,
         backgroundColor: Color.fromARGB(248, 158, 25, 1),
       ),
+      drawer: const AppDrawer(),
       body: Column(
         children: [],
       ),

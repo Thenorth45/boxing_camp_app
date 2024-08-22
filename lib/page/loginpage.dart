@@ -1,5 +1,6 @@
 import 'dart:convert';
-import 'package:boxing_camp_app/page/firstpage.dart';
+import 'package:boxing_camp_app/page/homepage.dart';
+import 'package:boxing_camp_app/page/profilepage.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_login/flutter_login.dart';
@@ -7,8 +8,10 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
 
+  final void Function(String) onLogin;
+  
+  const LoginScreen({super.key, required this.onLogin});
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -97,20 +100,20 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _navigateToRegisterPage(BuildContext context) {
-    if (_selectedRole != null) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => RegisterPage(role: _selectedRole!),
-        ),
-      );
-    } else {
-      // Show a message if no role is selected
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('กรุณาเลือกสิทธิ์การใช้งาน')),
-      );
-    }
-  }
+  // void _navigateToRegisterPage(BuildContext context) {
+  //   if (_selectedRole != null) {
+  //     Navigator.of(context).push(
+  //       MaterialPageRoute(
+  //         builder: (context) => RegisterPage(role: _selectedRole!),
+  //       ),
+  //     );
+  //   } else {
+  //     // Show a message if no role is selected
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('กรุณาเลือกสิทธิ์การใช้งาน')),
+  //     );
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -164,7 +167,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
             onSubmitAnimationCompleted: () {
               Navigator.of(context).pushReplacement(MaterialPageRoute(
-                builder: (context) => const Firstpage(),
+                builder: (context) => HomePage(),
               ));
             },
             onRecoverPassword: (_) => Future(() => null),
@@ -232,12 +235,19 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
           Positioned(
-            top: 80, // ปรับค่าตามที่คุณต้องการเพื่อให้โลโก้อยู่ในตำแหน่งที่ต้องการ
-            left: (MediaQuery.of(context).size.width - 500) / 2, // จัดกึ่งกลางภาพ
-            child: Image.asset(
-              'assets/images/logomuay.png',
-              width: 500,
-              height: 200,
+            top: 80,
+            left: (MediaQuery.of(context).size.width - 500) / 2,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => HomePage()),
+                );
+              },
+              child: Image.asset(
+                'assets/images/logomuay.png',
+                width: 500,
+                height: 200,
+              ),
             ),
           ),
         ],
@@ -246,20 +256,20 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-class RegisterPage extends StatelessWidget {
-  final String role;
+// class RegisterPage extends StatelessWidget {
+//   final String role;
 
-  const RegisterPage({super.key, required this.role});
+//   const RegisterPage({super.key, required this.role});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Register'),
-      ),
-      body: Center(
-        child: Text('Selected Role: $role'),
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: Text('Register'),
+//       ),
+//       body: Center(
+//         child: Text('Selected Role: $role'),
+//       ),
+//     );
+//   }
+// }

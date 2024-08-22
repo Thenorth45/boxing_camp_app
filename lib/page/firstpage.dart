@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:boxing_camp_app/main.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -35,15 +36,15 @@ class _FirstpageState extends State<Firstpage> {
     }
   }
 
-  Future<void> deleteUser(String email) async {
+  Future<void> deleteUser(String id) async {
     final response = await http.delete(
-      Uri.parse('http://localhost:3000/boxerdata/$email'),
+      Uri.parse('http://localhost:3000/boxerdata/$id'),
       headers: {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-cache',
       },
     );
-
+    print(id);
     if (response.statusCode == 200) {
       // Successfully deleted
       setState(() {
@@ -66,6 +67,7 @@ class _FirstpageState extends State<Firstpage> {
         backgroundColor: Color.fromARGB(248, 158, 25, 1),
         title: Text('User Data'),
       ),
+      drawer: const AppDrawer(),
       body: Center(
         child: FutureBuilder<List<User>>(
           future: futureUsers,
@@ -123,7 +125,7 @@ class _FirstpageState extends State<Firstpage> {
             ),
             TextButton(
               onPressed: () {
-                deleteUser(user.email);
+                deleteUser(user.id);
                 Navigator.of(context).pop(); // Close the dialog
               },
               child: Text('Delete'),
@@ -136,16 +138,19 @@ class _FirstpageState extends State<Firstpage> {
 }
 
 class User {
+  final String id;
   final String fullname;
   final String email;
 
   User({
+    required this.id,
     required this.fullname,
     required this.email,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
+      id: json['_id']['\$oid'],
       fullname: json['fullname'],
       email: json['email'],
     );
