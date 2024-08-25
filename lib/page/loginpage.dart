@@ -76,6 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           "fullname": data.additionalSignupData!["fullname"],
+          "username": data.additionalSignupData!["username"],
           "email": data.name,
           "password": data.password,
           "address": data.additionalSignupData!["address"],
@@ -143,6 +144,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 keyName: 'fullname',
                 displayName: 'ชื่อ-นามสกุล',
                 icon: Icon(FontAwesomeIcons.user),
+              ),
+              const UserFormField(
+                keyName: 'username',
+                displayName: 'ชื่อผู้ใช้',
+                icon: Icon(FontAwesomeIcons.accusoft),
               ),
               const UserFormField(
                 keyName: 'address',
