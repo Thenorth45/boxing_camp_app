@@ -44,7 +44,7 @@ class _EditProfileState extends State<EditProfile> {
     };
 
     final response = await http.put(
-      Uri.parse('http://localhost:3000/boxerdata/${widget.userData['_id']['\$oid']}'),
+      Uri.parse('http://localhost:3000/user/:id'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode(updatedData),
     );
@@ -67,6 +67,7 @@ class _EditProfileState extends State<EditProfile> {
             onPressed: _saveProfile,
           ),
         ],
+        backgroundColor: Color.fromARGB(248, 158, 25, 1),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

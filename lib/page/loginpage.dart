@@ -8,9 +8,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
-
   final void Function(String) onLogin;
-  
+
   const LoginScreen({super.key, required this.onLogin});
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -22,27 +21,26 @@ class _LoginScreenState extends State<LoginScreen> {
   Duration get loginTime => const Duration(milliseconds: 2250);
 
   Future<String?> _authUser(LoginData data) async {
-    debugPrint('Email: ${data.name}, Password: ${data.password}');
+    debugPrint('Username: ${data.name}, Password: ${data.password}');
 
     try {
       final response = await http.post(
         Uri.parse('http://localhost:3000/login'),
         body: {
-          'email': data.name,
+          'username': data.name,
           'password': data.password,
         },
       );
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
-        final token = responseData['token'];
-        final username = responseData['user']['name']; // Get the username from the API
-        print("token : $token");
+        final accessToken = responseData['accessToken'];
+        final refreshToken = responseData['refreshToken'];
 
         // Save the token and username to shared preferences
         SharedPreferences prefs = await SharedPreferences.getInstance();
-        prefs.setString('userToken', token);
-        prefs.setString('username', username);
+        prefs.setString('accessToken', accessToken);
+        prefs.setString('refreshToken', refreshToken);
 
         // Login successful
         return null;
@@ -55,13 +53,32 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       // Handle exceptions (e.g., network errors)
-      return 'เกิดข้อผิดพลาด';
+      // return 'เกิดข้อผิดพลาด';
     }
   }
 
+  Future<void> refreshAccessToken(String refreshToken) async {
+  final response = await http.post(
+    Uri.parse('http://localhost:3000/refresh'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'refreshToken': refreshToken}),
+  );
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    // Update accessToken and refreshToken
+    String accessToken = data['accessToken'];
+    String newRefreshToken = data['refreshToken'];
+    // Store tokens securely
+  } else {
+    throw Exception('Failed to refresh access token');
+  }
+}
+
   Future<String?> _signupUser(SignupData data) async {
     print("------------------------------------");
-    print("Email: ${data.name}");
+    print("Email: ${data.additionalSignupData!['email']}");
+    print("Username: ${data.name}");
     print("password: ${data.password}");
     print("ConfirmPassoword: ${data.password}");
     print("address: ${data.additionalSignupData!['address']}");
@@ -76,12 +93,13 @@ class _LoginScreenState extends State<LoginScreen> {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           "fullname": data.additionalSignupData!["fullname"],
-          "username": data.additionalSignupData!["username"],
-          "email": data.name,
+          "username": data.name,
+          "email": data.additionalSignupData!["email"],
           "password": data.password,
           "address": data.additionalSignupData!["address"],
           "telephone": data.additionalSignupData!["phone_number"],
-          "role": data.additionalSignupData!["selectedRole"], // ส่ง role ไปยังเซิร์ฟเวอร์
+          "role": data.additionalSignupData![
+              "selectedRole"], // ส่ง role ไปยังเซิร์ฟเวอร์
         }),
       );
 
@@ -92,7 +110,8 @@ class _LoginScreenState extends State<LoginScreen> {
         // Registration failed
         final responseData = json.decode(response.body);
         print(response.statusCode);
-        return responseData['message'] ?? 'ไม่สามารถสมัครสมาชิกได้ กรุณาลองใหม่';
+        return responseData['message'] ??
+            'ไม่สามารถสมัครสมาชิกได้ กรุณาลองใหม่';
       }
     } catch (e) {
       // Handle exceptions (e.g., network errors)
@@ -122,10 +141,17 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Stack(
         children: [
           FlutterLogin(
+            userType: LoginUserType.name,
             theme: LoginTheme(
               primaryColor: Color.fromARGB(254, 214, 115, 1),
               accentColor: Colors.white,
             ),
+            userValidator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'กรุณากรอกชื่อผู้ใช้'; // ตรวจสอบแค่ว่าชื่อผู้ใช้ไม่ว่างเปล่า
+              }
+              return null;
+            },
             onLogin: _authUser,
             onSignup: (data) async {
               // Add role to signup data
@@ -146,8 +172,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 icon: Icon(FontAwesomeIcons.user),
               ),
               const UserFormField(
-                keyName: 'username',
-                displayName: 'ชื่อผู้ใช้',
+                keyName: 'email',
+                displayName: 'อีเมล',
                 icon: Icon(FontAwesomeIcons.accusoft),
               ),
               const UserFormField(
@@ -178,7 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
             },
             onRecoverPassword: (_) => Future(() => null),
             messages: LoginMessages(
-              userHint: 'อีเมล',
+              userHint: 'ชื่อผู้ใช้',
               passwordHint: 'รหัสผ่าน',
               confirmPasswordHint: 'ยืนยันรหัสผ่าน',
               loginButton: 'เข้าสู่ระบบ',
@@ -188,7 +214,8 @@ class _LoginScreenState extends State<LoginScreen> {
               goBackButton: 'ย้อนกลับ',
               confirmPasswordError: 'พาสเวิร์ดไม่ตรงกัน!!',
               signUpSuccess: "สมัครสมาชิกสำเร็จ",
-              additionalSignUpFormDescription: "กรอกข้อมูลของท่านให้ครบและตรวจสอบให้ครบถ้วน!! ก่อนทำการสมัครสมาชิก",
+              additionalSignUpFormDescription:
+                  "กรอกข้อมูลของท่านให้ครบและตรวจสอบให้ครบถ้วน!! ก่อนทำการสมัครสมาชิก",
             ),
           ),
           Positioned(

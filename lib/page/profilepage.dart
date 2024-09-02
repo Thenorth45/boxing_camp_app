@@ -2,6 +2,8 @@ import 'package:boxing_camp_app/main.dart';
 import 'package:boxing_camp_app/page/editprofile.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class ProfilePage extends StatefulWidget {
 
@@ -24,18 +26,46 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _loadUserData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString('token'); // Assume you stored token after login
+
+  if (token != null) {
+    final response = await http.get(
+      Uri.parse('http://localhost:3000/user/:id'),
+      headers: {
+        'Authorization': 'Bearer $token',  // ส่ง token ไปยัง API
+      },
+    );
+
+    if (response.statusCode == 200) {
+      // ถ้าการดึงข้อมูลสำเร็จ
+      final data = json.decode(response.body);
+      setState(() {
+        _username = data['username'] ?? 'ไม่มีชื่อผู้ใช้';
+        name = data['email'] ?? 'ไม่มีอีเมล';
+      });
+    } else {
+      // จัดการเมื่อเกิดข้อผิดพลาด
+      setState(() {
+        _username = 'ไม่สามารถดึงข้อมูลผู้ใช้ได้';
+        name = 'ไม่สามารถดึงข้อมูลอีเมลได้';
+      });
+    }
+  } else {
+    // ถ้าไม่มี token ให้แสดงข้อความแจ้งผู้ใช้
     setState(() {
-      _username = prefs.getString('username') ?? 'ไม่มีชื่อผู้ใช้';
-      name = prefs.getString('email') ?? 'ไม่มีอีเมล';
+      _username = 'ไม่มีชื่อผู้ใช้';
+      name = 'ไม่มีอีเมล';
     });
   }
+}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('โปรไฟล์ของฉัน'),
+        backgroundColor: Color.fromARGB(248, 158, 25, 1),
       ),
       drawer: const AppDrawer(),
       body: Padding(

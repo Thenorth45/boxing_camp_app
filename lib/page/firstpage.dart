@@ -21,7 +21,7 @@ class _FirstpageState extends State<Firstpage> {
 
   Future<List<User>> fetchUsers() async {
     final response = await http.get(
-      Uri.parse('http://localhost:3000/boxerdata'),
+      Uri.parse('http://localhost:3000/users'),
       headers: {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-cache',
@@ -38,7 +38,7 @@ class _FirstpageState extends State<Firstpage> {
 
   Future<void> deleteUser(String id) async {
     final response = await http.delete(
-      Uri.parse('http://localhost:3000/boxerdata/$id'),
+      Uri.parse('http://localhost:3000/users/$id'),
       headers: {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-cache',
@@ -65,7 +65,7 @@ class _FirstpageState extends State<Firstpage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color.fromARGB(248, 158, 25, 1),
-        title: Text('User Data'),
+        title: Text('รายชื่อผู้ใช้งาน'),
       ),
       drawer: const AppDrawer(),
       body: Center(
@@ -125,7 +125,7 @@ class _FirstpageState extends State<Firstpage> {
             ),
             TextButton(
               onPressed: () {
-                deleteUser(user.id);
+                // deleteUser(user.id as String);
                 Navigator.of(context).pop(); // Close the dialog
               },
               child: Text('Delete'),
@@ -138,19 +138,19 @@ class _FirstpageState extends State<Firstpage> {
 }
 
 class User {
-  final String id;
+  // final int id;
   final String fullname;
   final String email;
 
   User({
-    required this.id,
+    // required this.id,
     required this.fullname,
     required this.email,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['_id']['\$oid'],
+      // id: json['_id']['\$oid'],
       fullname: json['fullname'],
       email: json['email'],
     );
