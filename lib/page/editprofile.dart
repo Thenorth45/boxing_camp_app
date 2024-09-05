@@ -20,10 +20,13 @@ class _EditProfileState extends State<EditProfile> {
   @override
   void initState() {
     super.initState();
-    _fullnameController = TextEditingController(text: widget.userData['fullname']);
+    _fullnameController =
+        TextEditingController(text: widget.userData['fullname']);
     _emailController = TextEditingController(text: widget.userData['email']);
-    _addressController = TextEditingController(text: widget.userData['address']);
-    _telephoneController = TextEditingController(text: widget.userData['telephone']);
+    _addressController =
+        TextEditingController(text: widget.userData['address']);
+    _telephoneController =
+        TextEditingController(text: widget.userData['telephone']);
   }
 
   @override
@@ -50,9 +53,11 @@ class _EditProfileState extends State<EditProfile> {
     );
 
     if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Profile updated successfully')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Profile updated successfully')));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update profile')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Failed to update profile')));
     }
   }
 
@@ -60,7 +65,14 @@ class _EditProfileState extends State<EditProfile> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Profile'),
+        title: Text(
+          'Edit Profile',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Color.fromARGB(255, 0, 0, 0),
+          ),
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.save),

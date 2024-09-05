@@ -9,7 +9,8 @@ class MapPickerPage extends StatefulWidget {
 }
 
 class _MapPickerPageState extends State<MapPickerPage> {
-  LatLng _selectedLocation = LatLng(13.7563, 100.5018); // ตำแหน่งเริ่มต้น (กรุงเทพฯ)
+  LatLng _selectedLocation =
+      LatLng(13.7563, 100.5018); // ตำแหน่งเริ่มต้น (กรุงเทพฯ)
   GoogleMapController? _mapController;
 
   void _onMapCreated(GoogleMapController controller) {
@@ -30,7 +31,14 @@ class _MapPickerPageState extends State<MapPickerPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('เลือกตำแหน่ง'),
+        title: const Text(
+          'เลือกตำแหน่ง',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Color.fromARGB(255, 0, 0, 0),
+          ),
+        ),
         backgroundColor: Color.fromARGB(248, 158, 25, 1),
       ),
       body: Stack(

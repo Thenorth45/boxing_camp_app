@@ -1,20 +1,20 @@
 import 'package:boxing_camp_app/main.dart';
 import 'package:flutter/material.dart';
 
-class ManagerHomePage extends StatefulWidget {
-  const ManagerHomePage({super.key});
+class Boxerpage extends StatefulWidget {
+  const Boxerpage({super.key});
 
   @override
-  State<ManagerHomePage> createState() => _ManagerHomePageState();
+  State<Boxerpage> createState() => _BoxerpageState();
 }
 
-class _ManagerHomePageState extends State<ManagerHomePage> {
+class _BoxerpageState extends State<Boxerpage> {
   @override
     Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "ผู้จัดการค่ายมวย",
+          "นักมวย",
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -25,8 +25,13 @@ class _ManagerHomePageState extends State<ManagerHomePage> {
         backgroundColor: Color.fromARGB(248, 158, 25, 1),
       ),
       drawer: const AppDrawer(),
-      body: Column(
-        children: [],
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            Navigator.pushNamed(context, '/addtraining');
+          },
+          child: Text('เพิ่มการฝึก'),
+        ),
       ),
     );
   }

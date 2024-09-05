@@ -42,6 +42,15 @@ class _LoginScreenState extends State<LoginScreen> {
         prefs.setString('accessToken', accessToken);
         prefs.setString('refreshToken', refreshToken);
 
+        Future<void> _saveUserId(String user_id) async {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString('user_id', user_id);
+        }
+
+        void loginUser(String user_id) {
+          _saveUserId(user_id); // บันทึก userId ลงใน SharedPreferences
+        }
+
         // Login successful
         return null;
       } else if (response.statusCode == 401) {
@@ -58,22 +67,22 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> refreshAccessToken(String refreshToken) async {
-  final response = await http.post(
-    Uri.parse('http://localhost:3000/refresh'),
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({'refreshToken': refreshToken}),
-  );
+    final response = await http.post(
+      Uri.parse('http://localhost:3000/refresh'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'refreshToken': refreshToken}),
+    );
 
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
-    // Update accessToken and refreshToken
-    String accessToken = data['accessToken'];
-    String newRefreshToken = data['refreshToken'];
-    // Store tokens securely
-  } else {
-    throw Exception('Failed to refresh access token');
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      // Update accessToken and refreshToken
+      String accessToken = data['accessToken'];
+      String newRefreshToken = data['refreshToken'];
+      // Store tokens securely
+    } else {
+      throw Exception('Failed to refresh access token');
+    }
   }
-}
 
   Future<String?> _signupUser(SignupData data) async {
     print("------------------------------------");
@@ -120,21 +129,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // void _navigateToRegisterPage(BuildContext context) {
-  //   if (_selectedRole != null) {
-  //     Navigator.of(context).push(
-  //       MaterialPageRoute(
-  //         builder: (context) => RegisterPage(role: _selectedRole!),
-  //       ),
-  //     );
-  //   } else {
-  //     // Show a message if no role is selected
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text('กรุณาเลือกสิทธิ์การใช้งาน')),
-  //     );
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -174,7 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const UserFormField(
                 keyName: 'email',
                 displayName: 'อีเมล',
-                icon: Icon(FontAwesomeIcons.accusoft),
+                icon: Icon(FontAwesomeIcons.envelope),
               ),
               const UserFormField(
                 keyName: 'address',
@@ -288,21 +282,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-
-// class RegisterPage extends StatelessWidget {
-//   final String role;
-
-//   const RegisterPage({super.key, required this.role});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('Register'),
-//       ),
-//       body: Center(
-//         child: Text('Selected Role: $role'),
-//       ),
-//     );
-//   }
-// }

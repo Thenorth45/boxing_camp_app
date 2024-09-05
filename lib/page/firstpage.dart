@@ -30,7 +30,12 @@ class _FirstpageState extends State<Firstpage> {
 
     if (response.statusCode == 200) {
       final List<dynamic> usersJson = json.decode(response.body);
-      return usersJson.map((json) => User.fromJson(json)).toList();
+      // Filter users with role "นักมวย"
+      final List<User> users = usersJson
+          .map((json) => User.fromJson(json))
+          .where((user) => user.role == 'นักมวย')
+          .toList();
+      return users;
     } else {
       throw Exception('Failed to load users');
     }
@@ -44,7 +49,6 @@ class _FirstpageState extends State<Firstpage> {
         'Cache-Control': 'no-cache',
       },
     );
-    print(id);
     if (response.statusCode == 200) {
       // Successfully deleted
       setState(() {
@@ -65,7 +69,14 @@ class _FirstpageState extends State<Firstpage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color.fromARGB(248, 158, 25, 1),
-        title: Text('รายชื่อผู้ใช้งาน'),
+        title: Text(
+          'รายชื่อนักมวย',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Color.fromARGB(255, 0, 0, 0),
+          ),
+        ),
       ),
       drawer: const AppDrawer(),
       body: Center(
@@ -125,7 +136,7 @@ class _FirstpageState extends State<Firstpage> {
             ),
             TextButton(
               onPressed: () {
-                // deleteUser(user.id as String);
+                // deleteUser(user.id); // Call deleteUser method
                 Navigator.of(context).pop(); // Close the dialog
               },
               child: Text('Delete'),
@@ -138,21 +149,24 @@ class _FirstpageState extends State<Firstpage> {
 }
 
 class User {
-  // final int id;
+  // final String id; // Added id field
   final String fullname;
   final String email;
+  final String role; // Added role field
 
   User({
-    // required this.id,
+    // required this.id, // Include id in constructor
     required this.fullname,
     required this.email,
+    required this.role, // Include role in constructor
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      // id: json['_id']['\$oid'],
+      // id: json['_id']['\$oid'], // Assuming the ID is stored in this format
       fullname: json['fullname'],
       email: json['email'],
+      role: json['role'], // Parse role from JSON
     );
   }
 }

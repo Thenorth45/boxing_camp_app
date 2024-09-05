@@ -48,10 +48,12 @@ class _AddCampPageState extends State<AddCampPage> {
 
       if (response.statusCode == 201) {
         // สำเร็จ
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('บันทึกค่ายมวยสำเร็จ')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('บันทึกค่ายมวยสำเร็จ')));
       } else {
         // ล้มเหลว
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('เกิดข้อผิดพลาด: ${response.reasonPhrase}')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('เกิดข้อผิดพลาด: ${response.reasonPhrase}')));
       }
     }
   }
@@ -60,7 +62,14 @@ class _AddCampPageState extends State<AddCampPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('เพิ่มค่ายมวย'),
+        title: const Text(
+          'เพิ่มค่ายมวย',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Color.fromARGB(255, 0, 0, 0),
+          ),
+        ),
         backgroundColor: Color.fromARGB(248, 158, 25, 1),
       ),
       body: Padding(

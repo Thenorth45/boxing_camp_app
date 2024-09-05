@@ -1,12 +1,16 @@
 import 'package:boxing_camp_app/page/addboxingcamp.dart';
+import 'package:boxing_camp_app/page/boxerpage.dart';
 import 'package:boxing_camp_app/page/contact.dart';
 import 'package:boxing_camp_app/page/firstpage.dart';
 import 'package:boxing_camp_app/page/homepage.dart';
 import 'package:boxing_camp_app/page/loginpage.dart';
 import 'package:boxing_camp_app/page/managerpage.dart';
 import 'package:boxing_camp_app/page/profilepage.dart';
+import 'package:boxing_camp_app/page/showcamp.dart';
 import 'package:boxing_camp_app/page/trainerpage.dart';
+import 'package:boxing_camp_app/page/trainingpage.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const MyApp());
@@ -29,8 +33,10 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/home',
       routes: {
-        '/home': (context) => HomePage(), // Replace with your initial page
-        '/addCamp': (context) => AddCampPage(), // Define the route for AddCampPage
+        '/home': (context) => HomePage(),
+        '/addCamp': (context) => AddCampPage(),
+        '/getcamp': (context) => CampsScreen(),
+        '/addtraining': (context) => ActivityFormPage(),
       },
       home: const HomePage(),
     );
@@ -49,10 +55,15 @@ class AppDrawer extends StatefulWidget {
 class _AppDrawerState extends State<AppDrawer> {
   bool isLoggedIn = false; // สถานะการล็อกอิน
 
-  void _login(String username) {
+  Future<void> _login(String username) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', true); // บันทึกสถานะการล็อกอิน
+    await prefs.setString('username', username); // บันทึกชื่อผู้ใช้
+
     setState(() {
       isLoggedIn = true;
     });
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -61,17 +72,22 @@ class _AppDrawerState extends State<AppDrawer> {
     );
   }
 
-  void _logout() {
-    setState(() {
-      isLoggedIn = false;
-    });
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => LoginScreen(onLogin: _login),
-      ),
-    );
-  }
+  Future<void> _logout() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.remove('isLoggedIn');
+  await prefs.remove('username');
+
+  setState(() {
+    isLoggedIn = false;
+  });
+
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (context) => LoginScreen(onLogin: _login),
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -116,6 +132,15 @@ class _AppDrawerState extends State<AppDrawer> {
             },
           ),
           ListTile(
+            title: const Text('นักมวย'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => Boxerpage()),
+              );
+            },
+          ),
+          ListTile(
             title: const Text('ครูมวย'),
             onTap: () {
               Navigator.push(
@@ -130,6 +155,15 @@ class _AppDrawerState extends State<AppDrawer> {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ManagerHomePage()),
+              );
+            },
+          ),
+          ListTile(
+            title: const Text('ค่ายมวย'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CampsScreen()),
               );
             },
           ),
