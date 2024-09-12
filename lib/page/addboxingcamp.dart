@@ -5,17 +5,27 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'map_picker_page.dart';
 
 class AddCampPage extends StatefulWidget {
-  const AddCampPage({super.key});
+  final String? username;
+
+  const AddCampPage({super.key, this.username});
+  
 
   @override
   State<AddCampPage> createState() => _AddCampPageState();
 }
 
 class _AddCampPageState extends State<AddCampPage> {
+  late String? username;
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
   LatLng? _selectedLocation;
+
+  @override
+  void initState() {
+    super.initState();
+    username = widget.username;
+  }
 
   Future<void> _selectLocation() async {
     final location = await Navigator.push(

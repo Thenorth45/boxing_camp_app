@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:boxing_camp_app/main.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 
@@ -17,8 +18,11 @@ class ApiService {
 }
 
 class CampsScreen extends StatelessWidget {
-  final ApiService apiService = ApiService();
+  final String? username;
 
+  CampsScreen({super.key, this.username});
+
+  final ApiService apiService = ApiService();
   Future<List<dynamic>> _fetchCamps() async {
     return await apiService.fetchCamps();
   }
@@ -36,6 +40,17 @@ class CampsScreen extends StatelessWidget {
           ),
         ),
         backgroundColor: Color.fromARGB(248, 158, 25, 1),
+      ),
+      drawer: BaseAppDrawer(
+        onHomeTap: (context) {
+          Navigator.pushNamed(context, '/home');
+        },
+        onCampTap: (context) {
+          Navigator.pushNamed(context, '/dashboard');
+        },
+        onContactTap: (context) {
+          Navigator.pushNamed(context, '/contact');
+        },
       ),
       body: FutureBuilder<List<dynamic>>(
         future: _fetchCamps(),

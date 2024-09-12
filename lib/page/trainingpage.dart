@@ -1,70 +1,133 @@
 import 'package:flutter/material.dart';
-import 'package:table_calendar/table_calendar.dart';
-import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class ActivityFormPage extends StatefulWidget {
+  final String? username;
+
+  const ActivityFormPage({super.key, this.username});
   @override
   _ActivityFormPageState createState() => _ActivityFormPageState();
 }
 
 class _ActivityFormPageState extends State<ActivityFormPage> {
-  DateTime _selectedDay = DateTime.now();
-  DateTime _focusedDay = DateTime.now();
 
-  final TextEditingController runingController = TextEditingController();
-  final TextEditingController ropejumpingController = TextEditingController();
-  final TextEditingController punchingandkickingController =
-      TextEditingController();
-  final TextEditingController weighttrainingController =
-      TextEditingController();
-
-  String? user_id;
+  late String? username;
 
   @override
   void initState() {
     super.initState();
-    _getUserId();
+    username = widget.username;
   }
+  
+  final TextEditingController runningDistanceController =
+      TextEditingController();
 
-  Future<void> _getUserId() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      user_id = prefs.getString('_id');
-    });
+  final TextEditingController ropeJumpingCountController =
+      TextEditingController();
+  final TextEditingController punchingCountController = TextEditingController();
+  final TextEditingController weightTrainingCountController =
+      TextEditingController();
 
-    if (user_id == null || user_id!.isEmpty) {
-      print('User ID is null or empty');
-      return;
-    }
-  }
+  DateTime? runningStartTime;
+  DateTime? runningEndTime;
+  int runningDuration = 0;
 
-  Future<void> submitActivity() async {
-    if (user_id == null) {
-      print('ไม่พบ userId');
-      return;
-    }
+  DateTime? ropeJumpingStartTime;
+  DateTime? ropeJumpingEndTime;
+  int ropeJumpingDuration = 0;
 
-    final response = await http.post(
-      Uri.parse('http://localhost:3000/addtraining'),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        'user_id': user_id,
-        'date': _selectedDay
-            .toIso8601String(), // ส่งวันที่ที่เลือก (ซึ่งคือวันที่ปัจจุบัน)
-        'runing': int.tryParse(runingController.text) ?? 0,
-        'ropejumping': int.tryParse(ropejumpingController.text) ?? 0,
-        'punchingandkicking':
-            int.tryParse(punchingandkickingController.text) ?? 0,
-        'weighttraining': int.tryParse(weighttrainingController.text) ?? 0,
-      }),
+  DateTime? punchingStartTime;
+  DateTime? punchingEndTime;
+  int punchingDuration = 0;
+
+  DateTime? weightTrainingStartTime;
+  DateTime? weightTrainingEndTime;
+  int weightTrainingDuration = 0;
+
+  Future<void> _selectTime(BuildContext context, DateTime? initialTime,
+      Function(DateTime) onTimeSelected) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: initialTime != null
+          ? TimeOfDay.fromDateTime(initialTime)
+          : TimeOfDay.now(),
     );
+    if (picked != null) {
+      onTimeSelected(DateTime(
+        DateTime.now().year,
+        DateTime.now().month,
+        DateTime.now().day,
+        picked.hour,
+        picked.minute,
+      ));
+    }
+  }
 
-    if (response.statusCode == 201) {
-      print('กิจกรรมบันทึกสำเร็จ');
-    } else {
-      print('เกิดข้อผิดพลาดในการบันทึกกิจกรรม');
+  void _calculateDuration(
+      DateTime? startTime, DateTime? endTime, Function(int) setDuration) {
+    if (startTime != null && endTime != null) {
+      final duration = endTime.difference(startTime).inMinutes;
+      setDuration(duration);
+    }
+  }
+
+// ฟังก์ชันในการส่งข้อมูลไปยังเซิร์ฟเวอร์
+  Future<void> submitActivity() async {
+    final runningDistance =
+        double.tryParse(runningDistanceController.text) ?? 0.0;
+    final ropeJumpingCount = int.tryParse(ropeJumpingCountController.text) ?? 0;
+    final punchingCount = int.tryParse(punchingCountController.text) ?? 0;
+    final weightTrainingCount =
+        int.tryParse(weightTrainingCountController.text) ?? 0;
+
+    final activityData = {
+      'running': {
+        'start_time': runningStartTime?.toIso8601String(),
+        'end_time': runningEndTime?.toIso8601String(),
+        'duration': runningDuration,
+        'distance': runningDistance,
+      },
+      'ropeJumping': {
+        'start_time': ropeJumpingStartTime?.toIso8601String(),
+        'end_time': ropeJumpingEndTime?.toIso8601String(),
+        'duration': ropeJumpingDuration,
+        'count': ropeJumpingCount,
+      },
+      'punching': {
+        'start_time': punchingStartTime?.toIso8601String(),
+        'end_time': punchingEndTime?.toIso8601String(),
+        'duration': punchingDuration,
+        'count': punchingCount,
+      },
+      'weightTraining': {
+        'start_time': weightTrainingStartTime?.toIso8601String(),
+        'end_time': weightTrainingEndTime?.toIso8601String(),
+        'duration': weightTrainingDuration,
+        'count': weightTrainingCount,
+      }
+    };
+
+    final url = Uri.parse('http://localhost:3000/addtraining');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(activityData),
+      );
+
+      if (response.statusCode == 200) {
+        print('Training data submitted successfully');
+      } else {
+        print(
+            'Failed to submit training data. Status code: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error submitting training data: $error');
     }
   }
 
@@ -72,69 +135,225 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          backgroundColor: Color.fromARGB(248, 158, 25, 1),
-          title: Text(
-            'บันทึกกิจกรรมรายวัน',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color.fromARGB(255, 0, 0, 0),
-            ),
-          )),
-      body: Column(
-        children: [
-          TableCalendar(
-            firstDay: _focusedDay,
-            lastDay: _focusedDay,
-            focusedDay: _focusedDay,
-            selectedDayPredicate: (day) {
-              return isSameDay(_selectedDay, day);
-            },
-            onDaySelected: (selectedDay, focusedDay) {},
-            calendarFormat: CalendarFormat.week,
-            onFormatChanged: (format) {
-              // ไม่ต้องเปลี่ยนรูปแบบ
-            },
-            onPageChanged: (focusedDay) {
-              // ไม่ให้เลื่อนปฏิทินไปยังเดือนอื่น
-            },
+        title: Text(
+          'บันทึกกิจกรรมรายวัน',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
-          Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                TextField(
-                  controller: runingController,
-                  decoration:
-                      InputDecoration(labelText: 'เวลาในการวิ่ง (นาที)'),
-                  keyboardType: TextInputType.number,
-                ),
-                TextField(
-                  controller: ropejumpingController,
-                  decoration: InputDecoration(labelText: 'กระโดดเชือก (นาที)'),
-                  keyboardType: TextInputType.number,
-                ),
-                TextField(
-                  controller: punchingandkickingController,
-                  decoration: InputDecoration(labelText: 'ต่อยและเตะ (นาที)'),
-                  keyboardType: TextInputType.number,
-                ),
-                TextField(
-                  controller: weighttrainingController,
-                  decoration: InputDecoration(labelText: 'ยกน้ำหนัก (นาที)'),
-                  keyboardType: TextInputType.number,
-                ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    submitActivity();
-                  },
-                  child: Text('บันทึกกิจกรรม'),
-                ),
-              ],
+        ),
+        backgroundColor: Color.fromARGB(248, 158, 25, 1),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            _buildActivityForm(
+              context,
+              title: 'วิ่ง',
+              startTime: runningStartTime,
+              endTime: runningEndTime,
+              duration: runningDuration,
+              onSelectStartTime: (time) {
+                setState(() {
+                  runningStartTime = time;
+                  _calculateDuration(runningStartTime, runningEndTime,
+                      (d) => runningDuration = d);
+                });
+              },
+              onSelectEndTime: (time) {
+                setState(() {
+                  runningEndTime = time;
+                  _calculateDuration(runningStartTime, runningEndTime,
+                      (d) => runningDuration = d);
+                });
+              },
+              distanceController: runningDistanceController,
             ),
-          ),
-        ],
+            SizedBox(height: 16),
+            _buildActivityFormWithCount(
+              context,
+              title: 'กระโดดเชือก',
+              startTime: ropeJumpingStartTime,
+              endTime: ropeJumpingEndTime,
+              duration: ropeJumpingDuration,
+              countController: ropeJumpingCountController,
+              onSelectStartTime: (time) {
+                setState(() {
+                  ropeJumpingStartTime = time;
+                  _calculateDuration(ropeJumpingStartTime, ropeJumpingEndTime,
+                      (d) => ropeJumpingDuration = d);
+                });
+              },
+              onSelectEndTime: (time) {
+                setState(() {
+                  ropeJumpingEndTime = time;
+                  _calculateDuration(ropeJumpingStartTime, ropeJumpingEndTime,
+                      (d) => ropeJumpingDuration = d);
+                });
+              },
+            ),
+            SizedBox(height: 16),
+            _buildActivityFormWithCount(
+              context,
+              title: 'การชกกระสอบทราย',
+              startTime: punchingStartTime,
+              endTime: punchingEndTime,
+              duration: punchingDuration,
+              countController: punchingCountController,
+              onSelectStartTime: (time) {
+                setState(() {
+                  punchingStartTime = time;
+                  _calculateDuration(punchingStartTime, punchingEndTime,
+                      (d) => punchingDuration = d);
+                });
+              },
+              onSelectEndTime: (time) {
+                setState(() {
+                  punchingEndTime = time;
+                  _calculateDuration(punchingStartTime, punchingEndTime,
+                      (d) => punchingDuration = d);
+                });
+              },
+            ),
+            SizedBox(height: 16),
+            _buildActivityFormWithCount(
+              context,
+              title: 'ยกน้ำหนัก',
+              startTime: weightTrainingStartTime,
+              endTime: weightTrainingEndTime,
+              duration: weightTrainingDuration,
+              countController: weightTrainingCountController,
+              onSelectStartTime: (time) {
+                setState(() {
+                  weightTrainingStartTime = time;
+                  _calculateDuration(weightTrainingStartTime,
+                      weightTrainingEndTime, (d) => weightTrainingDuration = d);
+                });
+              },
+              onSelectEndTime: (time) {
+                setState(() {
+                  weightTrainingEndTime = time;
+                  _calculateDuration(weightTrainingStartTime,
+                      weightTrainingEndTime, (d) => weightTrainingDuration = d);
+                });
+              },
+            ),
+            SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: submitActivity,
+              child: Text('บันทึกกิจกรรม'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Reusable function to build each activity form
+  Widget _buildActivityForm(
+    BuildContext context, {
+    required String title,
+    required DateTime? startTime,
+    required DateTime? endTime,
+    required int duration,
+    required Function(DateTime) onSelectStartTime,
+    required Function(DateTime) onSelectEndTime,
+    TextEditingController? distanceController,
+  }) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            ListTile(
+              title: Text(
+                  'เวลาเริ่มซ้อม: ${startTime != null ? DateFormat('HH:mm').format(startTime) : 'ยังไม่ได้เลือกเวลา'}'),
+              trailing: Icon(Icons.access_time),
+              onTap: () => _selectTime(context, startTime, onSelectStartTime),
+            ),
+            ListTile(
+              title: Text(
+                  'เวลาสิ้นสุดการซ้อม: ${endTime != null ? DateFormat('HH:mm').format(endTime) : 'ยังไม่ได้เลือกเวลา'}'),
+              trailing: Icon(Icons.access_time),
+              onTap: () => _selectTime(context, endTime, onSelectEndTime),
+            ),
+            SizedBox(height: 8),
+            if (distanceController != null)
+              TextField(
+                controller: distanceController,
+                decoration: InputDecoration(
+                  labelText: 'ระยะทาง (กิโลเมตร)',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            SizedBox(height: 8),
+            Text(
+              'ระยะเวลาที่ซ้อม: $duration นาที',
+              style: TextStyle(fontSize: 16),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Reusable function to build activity forms that include count
+  Widget _buildActivityFormWithCount(
+    BuildContext context, {
+    required String title,
+    required DateTime? startTime,
+    required DateTime? endTime,
+    required int duration,
+    required TextEditingController countController,
+    required Function(DateTime) onSelectStartTime,
+    required Function(DateTime) onSelectEndTime,
+  }) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            ListTile(
+              title: Text(
+                  'เวลาเริ่มซ้อม: ${startTime != null ? DateFormat('HH:mm').format(startTime) : 'ยังไม่ได้เลือกเวลา'}'),
+              trailing: Icon(Icons.access_time),
+              onTap: () => _selectTime(context, startTime, onSelectStartTime),
+            ),
+            ListTile(
+              title: Text(
+                  'เวลาสิ้นสุดการซ้อม: ${endTime != null ? DateFormat('HH:mm').format(endTime) : 'ยังไม่ได้เลือกเวลา'}'),
+              trailing: Icon(Icons.access_time),
+              onTap: () => _selectTime(context, endTime, onSelectEndTime),
+            ),
+            SizedBox(height: 8),
+            TextField(
+              controller: countController,
+              decoration: InputDecoration(
+                labelText: 'จำนวนครั้งที่ทำได้',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'ระยะเวลาที่ซ้อม: $duration นาที',
+              style: TextStyle(fontSize: 16),
+            ),
+          ],
+        ),
       ),
     );
   }

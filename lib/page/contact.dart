@@ -4,13 +4,22 @@ import 'package:boxing_camp_app/main.dart';
 import 'package:flutter/material.dart';
 
 class ContactPage extends StatefulWidget {
-  const ContactPage({super.key});
+  final String? username;
+  const ContactPage({super.key, this.username});
 
   @override
   State<ContactPage> createState() => _ContactPageState();
 }
 
 class _ContactPageState extends State<ContactPage> {
+
+  late String? username;
+
+  @override
+  void initState() {
+    super.initState();
+    username = widget.username;
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,7 +35,17 @@ class _ContactPageState extends State<ContactPage> {
         elevation: 10,
         backgroundColor: Color.fromARGB(248, 158, 25, 1),
       ),
-      drawer: const AppDrawer(),
+      drawer: BaseAppDrawer(
+        onHomeTap: (context) {
+          Navigator.pushNamed(context, '/home');
+        },
+        onCampTap: (context) {
+          Navigator.pushNamed(context, '/dashboard');
+        },
+        onContactTap: (context) {
+          Navigator.pushNamed(context, '/contact');
+        },
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

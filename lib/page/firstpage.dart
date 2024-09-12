@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class Firstpage extends StatefulWidget {
-  const Firstpage({super.key});
+  final String? username;
+  const Firstpage({super.key, this.username});
 
   @override
   _FirstpageState createState() => _FirstpageState();
@@ -12,11 +13,13 @@ class Firstpage extends StatefulWidget {
 
 class _FirstpageState extends State<Firstpage> {
   late Future<List<User>> futureUsers;
+  late String? username;
 
   @override
   void initState() {
     super.initState();
     futureUsers = fetchUsers();
+    username = widget.username;
   }
 
   Future<List<User>> fetchUsers() async {
@@ -78,7 +81,17 @@ class _FirstpageState extends State<Firstpage> {
           ),
         ),
       ),
-      drawer: const AppDrawer(),
+      drawer: BaseAppDrawer(
+        onHomeTap: (context) {
+          Navigator.pushNamed(context, '/home');
+        },
+        onCampTap: (context) {
+          Navigator.pushNamed(context, '/dashboard');
+        },
+        onContactTap: (context) {
+          Navigator.pushNamed(context, '/contact');
+        },
+      ),
       body: Center(
         child: FutureBuilder<List<User>>(
           future: futureUsers,

@@ -15,15 +15,14 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  String? _username;
-  String? name;
+  late String? username;
 
   @override
   void initState() {
     super.initState();
+    username = widget.username;
     _loadUserData();
   }
-
   Future<void> _loadUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token =
@@ -41,21 +40,21 @@ class _ProfilePageState extends State<ProfilePage> {
         // ถ้าการดึงข้อมูลสำเร็จ
         final data = json.decode(response.body);
         setState(() {
-          _username = data['username'] ?? 'ไม่มีชื่อผู้ใช้';
-          name = data['email'] ?? 'ไม่มีอีเมล';
+          username = data['username'] ?? 'ไม่มีชื่อผู้ใช้';
+          // name = data['email'] ?? 'ไม่มีอีเมล';
         });
       } else {
         // จัดการเมื่อเกิดข้อผิดพลาด
         setState(() {
-          _username = 'ไม่สามารถดึงข้อมูลผู้ใช้ได้';
-          name = 'ไม่สามารถดึงข้อมูลอีเมลได้';
+          username = 'ไม่สามารถดึงข้อมูลผู้ใช้ได้';
+          // name = 'ไม่สามารถดึงข้อมูลอีเมลได้';
         });
       }
     } else {
       // ถ้าไม่มี token ให้แสดงข้อความแจ้งผู้ใช้
       setState(() {
-        _username = 'ไม่มีชื่อผู้ใช้';
-        name = 'ไม่มีอีเมล';
+        username = 'ไม่มีชื่อผู้ใช้';
+        // name = 'ไม่มีอีเมล';
       });
     }
   }
@@ -74,7 +73,17 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         backgroundColor: Color.fromARGB(248, 158, 25, 1),
       ),
-      drawer: const AppDrawer(),
+      drawer: BaseAppDrawer(
+        onHomeTap: (context) {
+          Navigator.pushNamed(context, '/home');
+        },
+        onCampTap: (context) {
+          Navigator.pushNamed(context, '/dashboard');
+        },
+        onContactTap: (context) {
+          Navigator.pushNamed(context, '/contact');
+        },
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -85,19 +94,19 @@ class _ProfilePageState extends State<ProfilePage> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             Text(
-              _username ?? '',
+              username ?? '',
               style: TextStyle(fontSize: 16),
             ),
             SizedBox(height: 20),
-            Text(
-              'อีเมล:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              name ?? '',
-              style: TextStyle(fontSize: 16),
-            ),
-            SizedBox(height: 20),
+            // Text(
+            //   'อีเมล:',
+            //   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            // ),
+            // Text(
+            //   name ?? '',
+            //   style: TextStyle(fontSize: 16),
+            // ),
+            // SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 // Action for editing profile
