@@ -2,13 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MapPickerPage extends StatefulWidget {
-  const MapPickerPage({super.key});
+  final String? username;
+  const MapPickerPage({super.key, this.username});
 
   @override
   State<MapPickerPage> createState() => _MapPickerPageState();
 }
 
 class _MapPickerPageState extends State<MapPickerPage> {
+  late String? username;
+
+  @override
+  void initState() {
+    super.initState();
+    username = widget.username;
+  }
+
   LatLng _selectedLocation =
       LatLng(13.7563, 100.5018); // ตำแหน่งเริ่มต้น (กรุงเทพฯ)
   GoogleMapController? _mapController;
@@ -39,7 +48,24 @@ class _MapPickerPageState extends State<MapPickerPage> {
             color: Color.fromARGB(255, 0, 0, 0),
           ),
         ),
+        elevation: 10,
         backgroundColor: Color.fromARGB(248, 158, 25, 1),
+        actions: [
+          if (username != null)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(
+                child: Text(
+                  'ยินดีต้อนรับคุณ $username',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          const SizedBox(width: 16),
+        ],
       ),
       body: Stack(
         children: [

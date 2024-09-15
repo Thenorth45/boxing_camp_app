@@ -17,16 +17,14 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late String? username;
+  late SharedPreferences logindata;
   bool _isCheckingStatus = false; // เพิ่มตัวแปรเพื่อป้องกันการเรียกซ้ำ
 
   @override
   void initState() {
     super.initState();
     username = widget.username;
-    // เรียก _checkLoginStatus() ครั้งเดียวใน initState
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   _checkLoginStatus();
-    // });
+    _isCheckingStatus;
   }
 
   Future<void> _logout(BuildContext context) async {

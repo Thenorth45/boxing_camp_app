@@ -30,7 +30,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (token != null) {
       final response = await http.get(
-        Uri.parse('http://localhost:3000/user/:id'),
+        Uri.parse('http://localhost:3000/user'),
         headers: {
           'Authorization': 'Bearer $token', // ส่ง token ไปยัง API
         },

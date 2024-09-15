@@ -143,7 +143,24 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
             color: Colors.black,
           ),
         ),
+        elevation: 10,
         backgroundColor: Color.fromARGB(248, 158, 25, 1),
+        actions: [
+          if (username != null)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(
+                child: Text(
+                  'ยินดีต้อนรับคุณ $username',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          const SizedBox(width: 16),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),

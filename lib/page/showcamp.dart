@@ -39,7 +39,24 @@ class CampsScreen extends StatelessWidget {
             color: Color.fromARGB(255, 0, 0, 0),
           ),
         ),
+        elevation: 10,
         backgroundColor: Color.fromARGB(248, 158, 25, 1),
+        actions: [
+          if (username != null)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(
+                child: Text(
+                  'ยินดีต้อนรับคุณ $username',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          const SizedBox(width: 16),
+        ],
       ),
       drawer: BaseAppDrawer(
         onHomeTap: (context) {
