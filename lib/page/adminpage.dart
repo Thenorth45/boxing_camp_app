@@ -27,7 +27,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: Color.fromARGB(255, 255, 255, 255),
+            color: Color.fromARGB(255, 0, 0, 0),
           ),
         ),
         elevation: 10,

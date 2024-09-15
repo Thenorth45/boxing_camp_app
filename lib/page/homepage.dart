@@ -9,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class HomePage extends StatefulWidget {
   final String? username;
 
-  const HomePage({super.key, this.username});
+  const HomePage({super.key, this.username, String? responseData});
 
   @override
   State<HomePage> createState() => _HomePageState();

@@ -19,6 +19,27 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _errorMessage;
   bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    // _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool? isLoggedIn = prefs.getBool('isLoggedIn');
+    if (isLoggedIn == true) {
+      // หาก login อยู่ให้เปลี่ยนไปหน้า HomePage ทันที
+      String? username = prefs.getString('username');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomePage(responseData: username),
+        ),
+      );
+    }
+  }
+
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() {
@@ -39,36 +60,35 @@ class _LoginScreenState extends State<LoginScreen> {
         final responseData = json.decode(response.body);
         final accessToken = responseData['accessToken'];
         final refreshToken = responseData['refreshToken'];
-
-        print(responseData);
+        String role = responseData['users']['role']; // ดึง role จาก response
 
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setString('accessToken', accessToken);
         prefs.setString('refreshToken', refreshToken);
+        prefs.setString('username', responseData['users']['username']);
+        prefs.setBool('isLoggedIn', true);
+        prefs.setString('role', role); // เก็บ role ลงใน SharedPreferences
 
-        _showSnackBar("เข้าสู่ระบบสำเร็จ");
+        _showSnackBar("เข้าสู่ระบบสำเร็จ", Colors.green);
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HomePage(
-              username: responseData['users']['username'],
-            ),
-          ),
-        );
+        // นำทางตาม role ที่ได้รับ
+        _checkLogin(role);
       } else if (response.statusCode == 401) {
         setState(() {
           _errorMessage = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
         });
+        _showSnackBar(_errorMessage!, Colors.red);
       } else {
         setState(() {
           _errorMessage = 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง';
         });
+        _showSnackBar(_errorMessage!, Colors.red);
       }
     } catch (e) {
       setState(() {
         _errorMessage = 'ข้อผิดพลาดทางเครือข่าย: $e';
       });
+      _showSnackBar(_errorMessage!, Colors.red);
     } finally {
       setState(() {
         _isLoading = false;
@@ -76,8 +96,26 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _showSnackBar(String message) {
-    final snackbar = SnackBar(content: Text(message), duration: const Duration(seconds: 2));
+  void _checkLogin(String role) {
+    if (role == 'ผู้ดูแลระบบ') {
+      Navigator.pushReplacementNamed(context, '/adminpage');
+    } else if (role == 'ผู้จัดการค่ายมวย') {
+      Navigator.pushReplacementNamed(context, '/managerpage');
+    } else if (role == 'ครูมวย') {
+      Navigator.pushReplacementNamed(context, '/trainer');
+    } else if (role == 'นักมวย') {
+      Navigator.pushReplacementNamed(context, '/boxerpage');
+    } else {
+      Navigator.pushReplacementNamed(context, '/home');
+    }
+  }
+
+  void _showSnackBar(String message, Color backgroundColor) {
+    final snackbar = SnackBar(
+      content: Text(message),
+      duration: const Duration(seconds: 3),
+      backgroundColor: backgroundColor,
+    );
     ScaffoldMessenger.of(context).showSnackBar(snackbar);
   }
 
@@ -166,7 +204,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 onPressed: _login,
                                 style: ElevatedButton.styleFrom(
                                   foregroundColor: Colors.white,
-                                  backgroundColor: Color.fromARGB(255, 214, 115, 1),
+                                  backgroundColor:
+                                      Color.fromARGB(255, 214, 115, 1),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),

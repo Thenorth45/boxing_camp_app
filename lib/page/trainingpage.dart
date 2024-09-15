@@ -12,7 +12,6 @@ class ActivityFormPage extends StatefulWidget {
 }
 
 class _ActivityFormPageState extends State<ActivityFormPage> {
-
   late String? username;
 
   @override
@@ -20,7 +19,7 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
     super.initState();
     username = widget.username;
   }
-  
+
   final TextEditingController runningDistanceController =
       TextEditingController();
 
@@ -83,6 +82,7 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
         int.tryParse(weightTrainingCountController.text) ?? 0;
 
     final activityData = {
+      'username': username, // ตรวจสอบให้แน่ใจว่าคุณได้ส่งค่า username ไปด้วย
       'running': {
         'start_time': runningStartTime?.toIso8601String(),
         'end_time': runningEndTime?.toIso8601String(),
@@ -125,6 +125,8 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
       } else {
         print(
             'Failed to submit training data. Status code: ${response.statusCode}');
+        print(
+            'Response body: ${response.body}'); // แสดงผล response body เพื่อดูรายละเอียดของข้อผิดพลาด
       }
     } catch (error) {
       print('Error submitting training data: $error');

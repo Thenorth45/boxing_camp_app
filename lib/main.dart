@@ -25,38 +25,62 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Boxing Camp',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color.fromARGB(253, 173, 53, 1),
-          background: const Color.fromARGB(254, 214, 115, 1),
-        ),
-        useMaterial3: true,
-      ),
-      initialRoute: '/home',
-      routes: {
-        '/home': (context) => HomePage(),
-        '/addCamp': (context) => AddCampPage(),
-        '/getcamp': (context) => CampsScreen(),
-        '/addtraining': (context) => ActivityFormPage(),
-        '/profile': (context) => ProfilePage(),
-        '/contact': (context) => ContactPage(),
-        '/login': (context) => LoginScreen(),
-        '/traininghistory': (context) => ActivityHistoryPage(),
-        '/adminpage': (context) => AdminHomePage(),
-        '/boxerpage': (context) =>Boxerpage(),
-        '/dashboard': (context) =>DashboardPage(),
-        '/editprofile': (context) =>EditProfile(userData: {},),
-        '/firstpage': (context) =>Firstpage(),
-        '/managerpage': (context) =>ManagerHomePage(),
-        '/trainer': (context) =>TrainerHomePage(),
+    return FutureBuilder<String?>(
+      future: _getUserRole(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        } else {
+          String? role = snapshot.data;
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'Boxing Camp',
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color.fromARGB(253, 173, 53, 1),
+                background: const Color.fromARGB(254, 214, 115, 1),
+              ),
+              useMaterial3: true,
+            ),
+            initialRoute: role == null ? '/login' : _getInitialRoute(role),
+            routes: {
+              '/home': (context) => HomePage(),
+              '/addCamp': (context) => AddCampPage(),
+              '/getcamp': (context) => CampsScreen(),
+              '/addtraining': (context) => ActivityFormPage(),
+              '/profile': (context) => ProfilePage(),
+              '/contact': (context) => ContactPage(),
+              '/login': (context) => LoginScreen(),
+              '/traininghistory': (context) => ActivityHistoryPage(),
+              '/adminpage': (context) => AdminHomePage(),
+              '/boxerpage': (context) => Boxerpage(),
+              '/dashboard': (context) => DashboardPage(),
+              '/editprofile': (context) => EditProfile(userData: {}),
+              '/firstpage': (context) => Firstpage(),
+              '/managerpage': (context) => ManagerHomePage(),
+              '/trainer': (context) => TrainerHomePage(),
+            },
+            home: const LoginScreen(),
+          );
+        }
       },
-      home: const LoginScreen(),
     );
   }
+
+  Future<String?> _getUserRole() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('role');
+  }
+
+  String _getInitialRoute(String role) {
+    if (role == 'admin') return '/adminpage';
+    if (role == 'manager') return '/managerpage';
+    if (role == 'trainer') return '/trainer';
+    if (role == 'boxer') return '/boxerpage';
+    return '/home';
+  }
 }
+
 class BaseAppDrawer extends StatefulWidget {
   final String? username;
   final Function(BuildContext) onHomeTap;
