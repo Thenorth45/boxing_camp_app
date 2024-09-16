@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:boxing_camp_app/main.dart';
+import 'package:boxing_camp_app/page/campdetail.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 
@@ -89,6 +90,15 @@ class CampsScreen extends StatelessWidget {
                   subtitle: Text(camp['description']),
                   trailing: Text(
                       'Lat: ${camp['location']['latitude']}, Long: ${camp['location']['longitude']}'),
+                  onTap: () {
+                    // นำทางไปยังหน้ารายละเอียดค่ายมวยเมื่อกด
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CampDetailScreen(camp: camp),
+                      ),
+                    );
+                  },
                 );
               },
             );

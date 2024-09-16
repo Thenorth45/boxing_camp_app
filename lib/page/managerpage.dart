@@ -60,8 +60,25 @@ class _ManagerHomePageState extends State<ManagerHomePage> {
           Navigator.pushNamed(context, '/contact');
         },
       ),
-      body: Column(
-        children: [],
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/addCamp');
+              },
+              child: Text('เพิ่มค่ายมวย'),
+            ),
+            SizedBox(height: 16), // เพิ่มช่องว่างระหว่างปุ่ม
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/addboxer'); // ไปหน้าการเพิ่มนักมวย
+              },
+              child: Text('เพิ่มนักมวย'),
+            ),
+          ],
+        ),
       ),
     );
   }
