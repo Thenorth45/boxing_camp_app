@@ -1,15 +1,14 @@
 import 'dart:convert';
+import 'package:boxing_camp_app/main.dart';
 import 'package:http/http.dart' as http;
 import 'package:boxing_camp_app/page/loginpage.dart';
 import 'package:flutter/material.dart';
-import 'package:boxing_camp_app/main.dart';
-import 'package:boxing_camp_app/page/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   final String? username;
 
-  const HomePage({super.key, this.username, String? responseData});
+  const HomePage({super.key, this.username});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -17,14 +16,34 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late String? username;
+  String accessToken = "";
+  String refreshToken = "";
+  String role = "";
   late SharedPreferences logindata;
-  bool _isCheckingStatus = false; // เพิ่มตัวแปรเพื่อป้องกันการเรียกซ้ำ
+  bool _isCheckingStatus = false;
 
   @override
   void initState() {
     super.initState();
     username = widget.username;
-    _isCheckingStatus;
+    getInitialize();
+  }
+
+  void getInitialize() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isCheckingStatus = prefs.getBool("isLoggedIn")!;
+      username = prefs.getString("username");
+      accessToken = prefs.getString("accessToken")!;
+      refreshToken = prefs.getString("refreshToken")!;
+      role = prefs.getString("role")!;
+    });
+
+    print(_isCheckingStatus);
+    print(username);
+    print(accessToken);
+    print(refreshToken);
+    print(role);
   }
 
   Future<void> _logout(BuildContext context) async {
@@ -32,9 +51,9 @@ class _HomePageState extends State<HomePage> {
     await prefs.remove('accessToken');
     await prefs.remove('refreshToken');
 
-    final snackbar = SnackBar(
+    final snackbar = const SnackBar(
       content: Text('ออกจากระบบเรียบร้อยแล้ว'),
-      duration: const Duration(seconds: 2),
+      duration: Duration(seconds: 2),
     );
     ScaffoldMessenger.of(context).showSnackBar(snackbar);
 
@@ -68,71 +87,13 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _checkLoginStatus() async {
-    if (_isCheckingStatus) return; // ตรวจสอบว่ากำลังตรวจสอบอยู่หรือไม่
-    _isCheckingStatus = true;
-    try {
-      bool isLoggedIn = await checkTokenValidity();
-      if (isLoggedIn) {
-        // ใช้ Navigator.pushReplacement() เพื่อเปลี่ยนหน้า
-        if (ModalRoute.of(context)?.settings.name != '/home') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HomePage(username: username),
-            ),
-          );
-        }
-      } else {
-        if (ModalRoute.of(context)?.settings.name != '/login') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => LoginScreen(),
-            ),
-          );
-        }
-      }
-    } finally {
-      _isCheckingStatus = false;
-    }
-  }
-
-  Future<bool> checkTokenValidity() async {
-    String? accessToken = await getAccessToken();
-
-    if (accessToken != null) {
-      if (_isTokenExpired(accessToken)) {
-        await _refreshToken(context);
-        accessToken = await getAccessToken(); // ดึง accessToken ใหม่
-        if (_isTokenExpired(accessToken ?? '')) {
-          await _logout(context);
-          return false;
-        }
-        return true;
-      }
-      return true;
-    } else {
-      await _logout(context);
-      return false;
-    }
-  }
-
-  bool _isTokenExpired(String token) {
-    final decodedToken = json.decode(
-        ascii.decode(base64.decode(base64.normalize(token.split(".")[1]))));
-    final expiry = decodedToken['exp'];
-    final now = DateTime.now().millisecondsSinceEpoch / 1000;
-    return expiry < now;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: Builder(
           builder: (context) => IconButton(
-            icon: Icon(Icons.menu),
+            icon: const Icon(Icons.menu),
             onPressed: () {
               Scaffold.of(context).openDrawer();
             },
@@ -143,14 +104,14 @@ class _HomePageState extends State<HomePage> {
           height: 40,
         ),
         elevation: 10,
-        backgroundColor: Color.fromARGB(248, 158, 25, 1),
+        backgroundColor: const Color.fromARGB(248, 158, 25, 1),
         actions: [
           if (username != null)
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Center(
                 child: Text(
-                  'ยินดีต้อนรับคุณ $username',
+                  '$username',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -162,6 +123,9 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       drawer: BaseAppDrawer(
+        username: username,
+        isLoggedIn: _isCheckingStatus,
+        role: role,
         onHomeTap: (context) {
           Navigator.pushNamed(context, '/home');
         },
@@ -171,9 +135,6 @@ class _HomePageState extends State<HomePage> {
         onContactTap: (context) {
           Navigator.pushNamed(context, '/contact');
         },
-      ),
-      body: Column(
-        children: [],
       ),
     );
   }

@@ -1,7 +1,7 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
-
 import 'package:boxing_camp_app/main.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ContactPage extends StatefulWidget {
   final String? username;
@@ -14,12 +14,37 @@ class ContactPage extends StatefulWidget {
 class _ContactPageState extends State<ContactPage> {
 
   late String? username;
+  String accessToken = "";
+  String refreshToken = "";
+  String role = "";
+  late SharedPreferences logindata;
+  bool _isCheckingStatus = false;
 
   @override
   void initState() {
     super.initState();
     username = widget.username;
+    getInitialize();
   }
+
+  void getInitialize() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isCheckingStatus = prefs.getBool("isLoggedIn")!;
+      username = prefs.getString("username");
+      accessToken = prefs.getString("accessToken")!;
+      refreshToken = prefs.getString("refreshToken")!;
+      role = prefs.getString("role")!;
+    });
+
+    print(_isCheckingStatus);
+    print(username);
+    print(accessToken);
+    print(refreshToken);
+    print(role);
+
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,7 +65,7 @@ class _ContactPageState extends State<ContactPage> {
               padding: const EdgeInsets.all(8.0),
               child: Center(
                 child: Text(
-                  'ยินดีต้อนรับคุณ $username',
+                  '$username',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -52,6 +77,9 @@ class _ContactPageState extends State<ContactPage> {
         ],
       ),
       drawer: BaseAppDrawer(
+        username: username,
+        isLoggedIn: _isCheckingStatus,
+        role: role,
         onHomeTap: (context) {
           Navigator.pushNamed(context, '/home');
         },
@@ -65,21 +93,19 @@ class _ContactPageState extends State<ContactPage> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center, // Center column content vertically
-          crossAxisAlignment: CrossAxisAlignment.center, // Center column content horizontally
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Display an image
             Center(
               child: Image.asset(
-                'assets/contact/not.jpg', // Ensure this is your image path
+                'assets/contact/not.jpg',
                 width: 150,
                 height: 150,
               ),
             ),
             SizedBox(height: 20),
-            // Display contact details for the first person
             Align(
-              alignment: Alignment.center, // Center text horizontally
+              alignment: Alignment.center,
               child: Text(
                 'Watcharapong Chaisangsri',
                 style: TextStyle(
@@ -90,11 +116,11 @@ class _ContactPageState extends State<ContactPage> {
             ),
             SizedBox(height: 10),
             Align(
-              alignment: Alignment.center, // Center text horizontally
+              alignment: Alignment.center,
               child: Column(
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center, // Center row content horizontally
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.email, size: 20),
                       SizedBox(width: 10),
@@ -111,17 +137,16 @@ class _ContactPageState extends State<ContactPage> {
               ),
             ),
             SizedBox(height: 20),
-            // Display contact details for the second person
             Center(
               child: Image.asset(
-                'assets/contact/aom.jpg', // Ensure this is your image path
+                'assets/contact/aom.jpg',
                 width: 150,
                 height: 150,
               ),
             ),
             SizedBox(height: 20),
             Align(
-              alignment: Alignment.center, // Center text horizontally
+              alignment: Alignment.center,
               child: Text(
                 'Sunita Kanjanaprom',
                 style: TextStyle(
@@ -132,11 +157,11 @@ class _ContactPageState extends State<ContactPage> {
             ),
             SizedBox(height: 10),
             Align(
-              alignment: Alignment.center, // Center text horizontally
+              alignment: Alignment.center,
               child: Column(
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center, // Center row content horizontally
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.email, size: 20),
                       SizedBox(width: 10),

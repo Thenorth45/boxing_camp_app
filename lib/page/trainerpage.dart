@@ -1,5 +1,6 @@
 import 'package:boxing_camp_app/main.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TrainerHomePage extends StatefulWidget {
   final String? username;
@@ -11,11 +12,34 @@ class TrainerHomePage extends StatefulWidget {
 
 class _TrainerHomePageState extends State<TrainerHomePage> {
   late String? username;
+  String accessToken = "";
+  String refreshToken = "";
+  String role = "";
+  late SharedPreferences logindata;
+  bool _isCheckingStatus = false;
 
   @override
   void initState() {
     super.initState();
     username = widget.username;
+    getInitialize();
+  }
+
+  void getInitialize() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isCheckingStatus = prefs.getBool("isLoggedIn")!;
+      username = prefs.getString("username");
+      accessToken = prefs.getString("accessToken")!;
+      refreshToken = prefs.getString("refreshToken")!;
+      role = prefs.getString("role")!;
+    });
+
+    print(_isCheckingStatus);
+    print(username);
+    print(accessToken);
+    print(refreshToken);
+    print(role);
   }
 
   @override
@@ -31,7 +55,7 @@ class _TrainerHomePageState extends State<TrainerHomePage> {
           ),
         ),
         elevation: 10,
-        backgroundColor: Color.fromARGB(248, 158, 25, 1),
+        backgroundColor: const Color.fromARGB(248, 226, 131, 53),
         actions: [
           if (username != null)
             Padding(
@@ -50,6 +74,9 @@ class _TrainerHomePageState extends State<TrainerHomePage> {
         ],
       ),
       drawer: BaseAppDrawer(
+        username: username,
+        isLoggedIn: _isCheckingStatus,
+        role: role,
         onHomeTap: (context) {
           Navigator.pushNamed(context, '/home');
         },
@@ -65,7 +92,7 @@ class _TrainerHomePageState extends State<TrainerHomePage> {
           onPressed: () {
             Navigator.pushNamed(context, '/addCamp');
           },
-          child: Text('เพิ่มค่ายมวย'),
+          child: const Text('เพิ่มค่ายมวย'),
         ),
       ),
     );

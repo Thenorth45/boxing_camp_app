@@ -2,29 +2,59 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class AddBoxerPage extends StatefulWidget {
+  final String? username;
+
+  const AddBoxerPage({super.key, this.username});
+
   @override
   _AddBoxerPageState createState() => _AddBoxerPageState();
 }
 
 class _AddBoxerPageState extends State<AddBoxerPage> {
-  final TextEditingController _campIdController = TextEditingController();
   String? _selectedBoxer;
   String? _selectedCamp;
   List<dynamic> _boxers = [];
   List<dynamic> _camps = [];
+  late String? username;
+  String accessToken = "";
+  String refreshToken = "";
+  String role = "";
+  late SharedPreferences logindata;
+  bool _isCheckingStatus = false;
 
   @override
   void initState() {
     super.initState();
+    username = widget.username;
+    getInitialize();
     _fetchBoxers();
     _fetchCamps();
+  }
+
+  void getInitialize() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isCheckingStatus = prefs.getBool("isLoggedIn")!;
+      username = prefs.getString("username");
+      accessToken = prefs.getString("accessToken")!;
+      refreshToken = prefs.getString("refreshToken")!;
+      role = prefs.getString("role")!;
+    });
+    print(_isCheckingStatus);
+    print(username);
+    print(accessToken);
+    print(refreshToken);
+    print(role);
+
   }
 
   // ฟังก์ชันดึงรายชื่อนักมวยจากฐานข้อมูล
   Future<void> _fetchBoxers() async {
     final response = await http.get(
-      Uri.parse('http://localhost:3000/users'), // เปลี่ยน endpoint ตามที่คุณใช้
+      Uri.parse('http://localhost:3000/users'),
     );
 
     if (response.statusCode == 200) {
@@ -36,7 +66,7 @@ class _AddBoxerPageState extends State<AddBoxerPage> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('ไม่สามารถโหลดรายชื่อนักมวยได้')),
+        const SnackBar(content: Text('ไม่สามารถโหลดรายชื่อนักมวยได้')),
       );
     }
   }
@@ -45,7 +75,7 @@ class _AddBoxerPageState extends State<AddBoxerPage> {
   Future<void> _fetchCamps() async {
     final response = await http.get(
       Uri.parse(
-          'http://localhost:3000/getcamp'), // เปลี่ยน endpoint ตามที่คุณใช้
+          'http://localhost:3000/getcamp'),
     );
 
     if (response.statusCode == 200) {
@@ -59,7 +89,7 @@ class _AddBoxerPageState extends State<AddBoxerPage> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('ไม่สามารถโหลดข้อมูลค่ายมวยได้')),
+        const SnackBar(content: Text('ไม่สามารถโหลดข้อมูลค่ายมวยได้')),
       );
     }
   }
@@ -68,7 +98,7 @@ class _AddBoxerPageState extends State<AddBoxerPage> {
   Future<void> _addBoxer() async {
     if (_selectedBoxer == null || _selectedCamp == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('กรุณาเลือกนักมวยและค่ายมวย')),
+        const SnackBar(content: Text('กรุณาเลือกนักมวยและค่ายมวย')),
       );
       return;
     }
@@ -86,11 +116,11 @@ class _AddBoxerPageState extends State<AddBoxerPage> {
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('เพิ่มนักมวยสำเร็จ')),
+        const SnackBar(content: Text('เพิ่มนักมวยสำเร็จ')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('ไม่สามารถเพิ่มนักมวยได้')),
+        const SnackBar(content: Text('ไม่สามารถเพิ่มนักมวยได้')),
       );
     }
   }
@@ -98,7 +128,7 @@ class _AddBoxerPageState extends State<AddBoxerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('เพิ่มนักมวย')),
+      appBar: AppBar(title: const Text('เพิ่มนักมวย')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -107,7 +137,7 @@ class _AddBoxerPageState extends State<AddBoxerPage> {
             _camps.isNotEmpty
                 ? DropdownButtonFormField<String>(
                     value: _selectedCamp,
-                    hint: Text('เลือกค่ายมวย'),
+                    hint: const Text('เลือกค่ายมวย'),
                     onChanged: (newValue) {
                       setState(() {
                         _selectedCamp = newValue;
@@ -115,18 +145,18 @@ class _AddBoxerPageState extends State<AddBoxerPage> {
                     },
                     items: _camps.map<DropdownMenuItem<String>>((camp) {
                       return DropdownMenuItem<String>(
-                        value: camp['_id'], // ใช้ camp ID
+                        value: camp['_id'],
                         child: Text(camp['name']),
                       );
                     }).toList(),
                   )
-                : CircularProgressIndicator(), // แสดงโหลดเดอร์ขณะดึงข้อมูล
-            SizedBox(height: 16),
+                : const CircularProgressIndicator(),
+            const SizedBox(height: 16),
             // Dropdown สำหรับเลือกนักมวย
             _boxers.isNotEmpty
                 ? DropdownButtonFormField<String>(
                     value: _selectedBoxer,
-                    hint: Text('เลือกนักมวย'),
+                    hint: const Text('เลือกนักมวย'),
                     onChanged: (newValue) {
                       setState(() {
                         _selectedBoxer = newValue;
@@ -139,11 +169,11 @@ class _AddBoxerPageState extends State<AddBoxerPage> {
                       );
                     }).toList(),
                   )
-                : CircularProgressIndicator(), // แสดงโหลดเดอร์ขณะดึงข้อมูล
-            SizedBox(height: 20),
+                : const CircularProgressIndicator(),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _addBoxer,
-              child: Text('เพิ่มนักมวย'),
+              child: const Text('เพิ่มนักมวย'),
             ),
           ],
         ),

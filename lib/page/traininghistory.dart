@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class ActivityHistoryPage extends StatefulWidget {
   final String? username;
 
@@ -12,19 +14,41 @@ class ActivityHistoryPage extends StatefulWidget {
 }
 
 class _ActivityHistoryPageState extends State<ActivityHistoryPage> {
-
   late String? username;
+  String accessToken = "";
+  String refreshToken = "";
+  String role = "";
+  late SharedPreferences logindata;
+  bool _isCheckingStatus = false;
   List<dynamic> activities = [];
 
   @override
   void initState() {
     super.initState();
+    getInitialize();
     _fetchActivities();
     username = widget.username;
   }
 
+  void getInitialize() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isCheckingStatus = prefs.getBool("isLoggedIn")!;
+      username = prefs.getString("username");
+      accessToken = prefs.getString("accessToken")!;
+      refreshToken = prefs.getString("refreshToken")!;
+      role = prefs.getString("role")!;
+    });
+
+    print(_isCheckingStatus);
+    print(username);
+    print(accessToken);
+    print(refreshToken);
+    print(role);
+  }
+
   Future<void> _fetchActivities() async {
-    final url = Uri.parse('http://localhost:3000/getTraining');
+    final url = Uri.parse('http://localhost:3000/gettraining');
     try {
       final response = await http.get(url);
 
@@ -44,7 +68,7 @@ class _ActivityHistoryPageState extends State<ActivityHistoryPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'ประวัติการฝึกซ้อม',
           style: TextStyle(
             fontSize: 24,
@@ -53,14 +77,14 @@ class _ActivityHistoryPageState extends State<ActivityHistoryPage> {
           ),
         ),
         elevation: 10,
-        backgroundColor: Color.fromARGB(248, 158, 25, 1),
+        backgroundColor: const Color.fromARGB(248, 226, 131, 53),
         actions: [
           if (username != null)
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Center(
                 child: Text(
-                  'ยินดีต้อนรับคุณ $username',
+                  '$username',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -75,19 +99,18 @@ class _ActivityHistoryPageState extends State<ActivityHistoryPage> {
         itemCount: activities.length,
         itemBuilder: (context, index) {
           final activity = activities[index];
-          final running = activity['runing'] ?? {};
-          final ropeJumping = activity['ropejumping'] ?? {};
-          final punching = activity['punchingandkicking'] ?? {};
-          final weightTraining = activity['weighttraining'] ?? {};
-          final updatedAt = activity['updated_at']; // Get the updated_at date
+          final running = activity['running'] ?? {};
+          final ropeJumping = activity['ropeJumping'] ?? {};
+          final punching = activity['punching'] ?? {};
+          final weightTraining = activity['weightTraining'] ?? {};
+          final updatedAt = activity['updated_at'];
 
-          // Format the date
           final formattedDate = updatedAt != null
               ? DateTime.parse(updatedAt).toLocal().toString().split(' ')[0]
               : 'Unknown date';
 
           return Card(
-            margin: EdgeInsets.all(8.0),
+            margin: const EdgeInsets.all(8.0),
             elevation: 4.0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -99,32 +122,32 @@ class _ActivityHistoryPageState extends State<ActivityHistoryPage> {
                 children: [
                   Text(
                     'เจ้าของข้อมูล: ${activity['username'] ?? 'Unknown'}',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     'วิ่ง: ${running['duration']} นาที, ระยะทาง: ${running['distance']} กม.',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     'กระโดดเชือก: ${ropeJumping['duration']} นาที, จำนวนครั้ง: ${ropeJumping['count']}',
-                    style: TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     'การชกกระสอบทราย: ${punching['duration']} นาที, จำนวนครั้ง: ${punching['count']}',
-                    style: TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     'ยกน้ำหนัก: ${weightTraining['duration']} นาที, จำนวนครั้ง: ${weightTraining['count']}',
-                    style: TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     'วันที่บันทึกข้อมูล: $formattedDate',
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                 ],
               ),

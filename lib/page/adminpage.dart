@@ -1,5 +1,6 @@
 import 'package:boxing_camp_app/main.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AdminHomePage extends StatefulWidget {
   final String? username;
@@ -11,11 +12,35 @@ class AdminHomePage extends StatefulWidget {
 
 class _AdminHomePageState extends State<AdminHomePage> {
   late String? username;
+  String accessToken = "";
+  String refreshToken = "";
+  String role = "";
+  late SharedPreferences logindata;
+  bool _isCheckingStatus = false;
 
   @override
   void initState() {
     super.initState();
     username = widget.username;
+    getInitialize();
+  }
+
+  void getInitialize() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isCheckingStatus = prefs.getBool("isLoggedIn")!;
+      username = prefs.getString("username");
+      accessToken = prefs.getString("accessToken")!;
+      refreshToken = prefs.getString("refreshToken")!;
+      role = prefs.getString("role")!;
+    });
+
+    print(_isCheckingStatus);
+    print(username);
+    print(accessToken);
+    print(refreshToken);
+    print(role);
+
   }
 
   @override
@@ -31,7 +56,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
           ),
         ),
         elevation: 10,
-        backgroundColor: Color.fromARGB(248, 158, 25, 1),
+        backgroundColor: const Color.fromARGB(248, 158, 25, 1),
         actions: [
           if (username != null)
             Padding(
@@ -50,6 +75,9 @@ class _AdminHomePageState extends State<AdminHomePage> {
         ],
       ),
       drawer: BaseAppDrawer(
+        username: username,
+        isLoggedIn: _isCheckingStatus,
+        role: role,
         onHomeTap: (context) {
           Navigator.pushNamed(context, '/home');
         },
@@ -60,7 +88,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
           Navigator.pushNamed(context, '/contact');
         },
       ),
-      body: Column(
+      body: const Column(
         children: [],
       ),
     );

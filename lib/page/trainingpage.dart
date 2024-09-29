@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ActivityFormPage extends StatefulWidget {
   final String? username;
@@ -13,11 +14,61 @@ class ActivityFormPage extends StatefulWidget {
 
 class _ActivityFormPageState extends State<ActivityFormPage> {
   late String? username;
+  String accessToken = "";
+  String refreshToken = "";
+  String role = "";
+  late SharedPreferences logindata;
+  bool _isCheckingStatus = false;
+
+  DateTime selectedDate = DateTime.now();
 
   @override
   void initState() {
     super.initState();
     username = widget.username;
+    getInitialize();
+  }
+
+  void getInitialize() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isCheckingStatus = prefs.getBool("isLoggedIn")!;
+      username = prefs.getString("username");
+      accessToken = prefs.getString("accessToken")!;
+      refreshToken = prefs.getString("refreshToken")!;
+      role = prefs.getString("role")!;
+    });
+
+    String? lastActivityDate = prefs.getString("lastActivityDate");
+    if (lastActivityDate != null) {
+      DateTime lastDate = DateTime.parse(lastActivityDate);
+      DateTime today = DateTime.now();
+
+      if (lastDate.year == today.year &&
+          lastDate.month == today.month &&
+          lastDate.day == today.day) {
+      }
+    }
+
+    print(_isCheckingStatus);
+    print(username);
+    print(accessToken);
+    print(refreshToken);
+    print(role);
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2022),
+      lastDate: DateTime.now(),
+    );
+    if (pickedDate != null && pickedDate != selectedDate) {
+      setState(() {
+        selectedDate = pickedDate;
+      });
+    }
   }
 
   final TextEditingController runningDistanceController =
@@ -72,7 +123,6 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
     }
   }
 
-// ฟังก์ชันในการส่งข้อมูลไปยังเซิร์ฟเวอร์
   Future<void> submitActivity() async {
     final runningDistance =
         double.tryParse(runningDistanceController.text) ?? 0.0;
@@ -82,7 +132,8 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
         int.tryParse(weightTrainingCountController.text) ?? 0;
 
     final activityData = {
-      'username': username, // ตรวจสอบให้แน่ใจว่าคุณได้ส่งค่า username ไปด้วย
+      'date': selectedDate.toIso8601String(),
+      'username': username,
       'running': {
         'start_time': runningStartTime?.toIso8601String(),
         'end_time': runningEndTime?.toIso8601String(),
@@ -120,13 +171,25 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
         body: jsonEncode(activityData),
       );
 
-      if (response.statusCode == 200) {
-        print('Training data submitted successfully');
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('บันทึกกิจกรรมสำเร็จ'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setString('lastActivityDate', DateTime.now().toIso8601String());
       } else {
-        print(
-            'Failed to submit training data. Status code: ${response.statusCode}');
-        print(
-            'Response body: ${response.body}'); // แสดงผล response body เพื่อดูรายละเอียดของข้อผิดพลาด
+        print('submit training data. Status code: ${response.statusCode}');
+        print('Response body: ${response.body}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('คุณได้บันทึกสำหรับวันนี้แล้ว'),
+            backgroundColor: Color.fromARGB(255, 255, 0, 0),
+          ),
+        );
       }
     } catch (error) {
       print('Error submitting training data: $error');
@@ -137,7 +200,7 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'บันทึกกิจกรรมรายวัน',
           style: TextStyle(
             fontSize: 24,
@@ -146,14 +209,14 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
           ),
         ),
         elevation: 10,
-        backgroundColor: Color.fromARGB(248, 158, 25, 1),
+        backgroundColor: const Color.fromARGB(248, 226, 131, 53),
         actions: [
           if (username != null)
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Center(
                 child: Text(
-                  'ยินดีต้อนรับคุณ $username',
+                  '$username',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -168,6 +231,18 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            Card(
+              elevation: 4,
+              child: ListTile(
+                title: Text(
+                  'วันที่บันทึก: ${DateFormat('dd/MM/yyyy').format(selectedDate)}',
+                  style: const TextStyle(fontSize: 18),
+                ),
+                trailing: const Icon(
+                    Icons.lock),
+              ),
+            ),
+            const SizedBox(height: 16),
             _buildActivityForm(
               context,
               title: 'วิ่ง',
@@ -190,7 +265,7 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
               },
               distanceController: runningDistanceController,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             _buildActivityFormWithCount(
               context,
               title: 'กระโดดเชือก',
@@ -213,7 +288,7 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
                 });
               },
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             _buildActivityFormWithCount(
               context,
               title: 'การชกกระสอบทราย',
@@ -236,7 +311,7 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
                 });
               },
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             _buildActivityFormWithCount(
               context,
               title: 'ยกน้ำหนัก',
@@ -259,18 +334,27 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
                 });
               },
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             ElevatedButton(
               onPressed: submitActivity,
-              child: Text('บันทึกกิจกรรม'),
-            ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    const Color.fromARGB(255, 97, 203, 5),
+              ),
+              child: const Text(
+                'บันทึกกิจกรรม',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16.0,
+                ),
+              ),
+            )
           ],
         ),
       ),
     );
   }
 
-  // Reusable function to build each activity form
   Widget _buildActivityForm(
     BuildContext context, {
     required String title,
@@ -289,34 +373,34 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
           children: [
             Text(
               title,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             ListTile(
               title: Text(
                   'เวลาเริ่มซ้อม: ${startTime != null ? DateFormat('HH:mm').format(startTime) : 'ยังไม่ได้เลือกเวลา'}'),
-              trailing: Icon(Icons.access_time),
+              trailing: const Icon(Icons.access_time),
               onTap: () => _selectTime(context, startTime, onSelectStartTime),
             ),
             ListTile(
               title: Text(
                   'เวลาสิ้นสุดการซ้อม: ${endTime != null ? DateFormat('HH:mm').format(endTime) : 'ยังไม่ได้เลือกเวลา'}'),
-              trailing: Icon(Icons.access_time),
+              trailing: const Icon(Icons.access_time),
               onTap: () => _selectTime(context, endTime, onSelectEndTime),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             if (distanceController != null)
               TextField(
                 controller: distanceController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'ระยะทาง (กิโลเมตร)',
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
               ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               'ระยะเวลาที่ซ้อม: $duration นาที',
-              style: TextStyle(fontSize: 16),
+              style: const TextStyle(fontSize: 16),
             ),
           ],
         ),
@@ -324,7 +408,6 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
     );
   }
 
-  // Reusable function to build activity forms that include count
   Widget _buildActivityFormWithCount(
     BuildContext context, {
     required String title,
@@ -343,33 +426,33 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
           children: [
             Text(
               title,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             ListTile(
               title: Text(
                   'เวลาเริ่มซ้อม: ${startTime != null ? DateFormat('HH:mm').format(startTime) : 'ยังไม่ได้เลือกเวลา'}'),
-              trailing: Icon(Icons.access_time),
+              trailing: const Icon(Icons.access_time),
               onTap: () => _selectTime(context, startTime, onSelectStartTime),
             ),
             ListTile(
               title: Text(
                   'เวลาสิ้นสุดการซ้อม: ${endTime != null ? DateFormat('HH:mm').format(endTime) : 'ยังไม่ได้เลือกเวลา'}'),
-              trailing: Icon(Icons.access_time),
+              trailing: const Icon(Icons.access_time),
               onTap: () => _selectTime(context, endTime, onSelectEndTime),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             TextField(
               controller: countController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'จำนวนครั้งที่ทำได้',
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.number,
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               'ระยะเวลาที่ซ้อม: $duration นาที',
-              style: TextStyle(fontSize: 16),
+              style: const TextStyle(fontSize: 16),
             ),
           ],
         ),

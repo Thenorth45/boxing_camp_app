@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'homepage.dart';
 import 'registerpage.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -22,22 +21,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    // _checkLoginStatus();
-  }
-
-  Future<void> _checkLoginStatus() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool? isLoggedIn = prefs.getBool('isLoggedIn');
-    if (isLoggedIn == true) {
-      // หาก login อยู่ให้เปลี่ยนไปหน้า HomePage ทันที
-      String? username = prefs.getString('username');
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomePage(responseData: username),
-        ),
-      );
-    }
   }
 
   Future<void> _login() async {
@@ -60,18 +43,19 @@ class _LoginScreenState extends State<LoginScreen> {
         final responseData = json.decode(response.body);
         final accessToken = responseData['accessToken'];
         final refreshToken = responseData['refreshToken'];
-        String role = responseData['users']['role']; // ดึง role จาก response
+        String role = responseData['users']['role'];
 
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setString('accessToken', accessToken);
         prefs.setString('refreshToken', refreshToken);
         prefs.setString('username', responseData['users']['username']);
         prefs.setBool('isLoggedIn', true);
-        prefs.setString('role', role); // เก็บ role ลงใน SharedPreferences
+        prefs.setString('role', role);
+
+        print(prefs.getString("accessToken"));
 
         _showSnackBar("เข้าสู่ระบบสำเร็จ", Colors.green);
 
-        // นำทางตาม role ที่ได้รับ
         _checkLogin(role);
       } else if (response.statusCode == 401) {
         setState(() {
@@ -123,7 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'เข้าสู่ระบบ',
           style: TextStyle(
             fontSize: 24,
@@ -131,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
             color: Colors.black,
           ),
         ),
-        backgroundColor: Color.fromARGB(248, 158, 25, 1),
+        backgroundColor: const Color.fromARGB(248, 226, 131, 53),
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -140,14 +124,14 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               Image.asset(
                 'assets/images/logomuay.png',
-                width: 250,
-                height: 250,
+                width: 450,
+                height: 350,
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Container(
-                  padding: EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     border: Border.all(
@@ -155,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(15),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(
                         color: Colors.black26,
                         blurRadius: 10,
@@ -171,13 +155,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         if (_errorMessage != null) ...[
                           Text(
                             _errorMessage!,
-                            style: TextStyle(color: Colors.red),
+                            style: const TextStyle(color: Colors.red),
                           ),
-                          SizedBox(height: 10),
+                          const SizedBox(height: 10),
                         ],
                         TextFormField(
                           controller: _usernameController,
-                          decoration: InputDecoration(labelText: 'ชื่อผู้ใช้'),
+                          decoration: const InputDecoration(labelText: 'ชื่อผู้ใช้'),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'กรุณาใส่ชื่อผู้ใช้';
@@ -185,10 +169,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             return null;
                           },
                         ),
-                        SizedBox(height: 10),
+                        const SizedBox(height: 10),
                         TextFormField(
                           controller: _passwordController,
-                          decoration: InputDecoration(labelText: 'รหัสผ่าน'),
+                          decoration: const InputDecoration(labelText: 'รหัสผ่าน'),
                           obscureText: true,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -197,23 +181,23 @@ class _LoginScreenState extends State<LoginScreen> {
                             return null;
                           },
                         ),
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
                         _isLoading
-                            ? CircularProgressIndicator()
+                            ? const CircularProgressIndicator()
                             : ElevatedButton(
                                 onPressed: _login,
                                 style: ElevatedButton.styleFrom(
                                   foregroundColor: Colors.white,
                                   backgroundColor:
-                                      Color.fromARGB(255, 214, 115, 1),
+                                      const Color.fromARGB(255, 214, 115, 1),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  padding: EdgeInsets.symmetric(
+                                  padding: const EdgeInsets.symmetric(
                                       vertical: 15, horizontal: 30),
                                   elevation: 5,
                                 ),
-                                child: Text(
+                                child: const Text(
                                   'เข้าสู่ระบบ',
                                   style: TextStyle(
                                     fontSize: 16,
@@ -229,7 +213,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   builder: (context) => RegisterScreen()),
                             );
                           },
-                          child: Text('คุณไม่มีบัญชีใช่หรือไม่? สมัครสมาชิก'),
+                          child: const Text('คุณไม่มีบัญชีใช่หรือไม่? สมัครสมาชิก'),
                         ),
                       ],
                     ),

@@ -1,30 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MapPickerPage extends StatefulWidget {
   final String? username;
 
-  const MapPickerPage({Key? key, this.username}) : super(key: key);
+  const MapPickerPage({super.key, this.username});
 
   @override
   State<MapPickerPage> createState() => _MapPickerPageState();
 }
 
 class _MapPickerPageState extends State<MapPickerPage> {
-  LatLng _selectedLocation = const LatLng(13.7563, 100.5018); // Default location (Bangkok)
+  LatLng _selectedLocation = const LatLng(13.7563, 100.5018);
   GoogleMapController? _mapController;
   String? username;
+  String accessToken = "";
+  String refreshToken = "";
+  String role = "";
+  late SharedPreferences logindata;
+  bool _isCheckingStatus = false;
 
   @override
   void initState() {
     super.initState();
     username = widget.username;
+    getInitialize();
+  }
+
+   void getInitialize() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isCheckingStatus = prefs.getBool("isLoggedIn")!;
+      username = prefs.getString("username");
+      accessToken = prefs.getString("accessToken")!;
+      refreshToken = prefs.getString("refreshToken")!;
+      role = prefs.getString("role")!;
+    });
+
+    print(_isCheckingStatus);
+    print(username);
+    print(accessToken);
+    print(refreshToken);
+    print(role);
+
   }
 
   @override
   void dispose() {
-    _mapController?.dispose(); // Dispose the map controller to free up resources
+    _mapController?.dispose();
     super.dispose();
   }
 
@@ -63,7 +88,6 @@ class _MapPickerPageState extends State<MapPickerPage> {
         false;
   }
 
-  // Request for location permission
   Future<void> _checkLocationPermission() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -96,10 +120,9 @@ class _MapPickerPageState extends State<MapPickerPage> {
       return;
     }
 
-    _getCurrentLocation(); // Fetch the location after permission is granted
+    _getCurrentLocation();
   }
 
-  // Get the current location and update the map
   Future<void> _getCurrentLocation() async {
     try {
       Position position = await Geolocator.getCurrentPosition(
@@ -140,7 +163,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
                 padding: const EdgeInsets.all(8.0),
                 child: Center(
                   child: Text(
-                    'ยินดีต้อนรับคุณ $username',
+                    '$username',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

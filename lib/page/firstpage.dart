@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:boxing_camp_app/main.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Firstpage extends StatefulWidget {
   final String? username;
@@ -14,12 +15,36 @@ class Firstpage extends StatefulWidget {
 class _FirstpageState extends State<Firstpage> {
   late Future<List<User>> futureUsers;
   late String? username;
+  String accessToken = "";
+  String refreshToken = "";
+  String role = "";
+  late SharedPreferences logindata;
+  bool _isCheckingStatus = false;
 
   @override
   void initState() {
     super.initState();
+    getInitialize();
     futureUsers = fetchUsers();
     username = widget.username;
+  }
+
+  void getInitialize() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isCheckingStatus = prefs.getBool("isLoggedIn")!;
+      username = prefs.getString("username");
+      accessToken = prefs.getString("accessToken")!;
+      refreshToken = prefs.getString("refreshToken")!;
+      role = prefs.getString("role")!;
+    });
+
+    print(_isCheckingStatus);
+    print(username);
+    print(accessToken);
+    print(refreshToken);
+    print(role);
+
   }
 
   Future<List<User>> fetchUsers() async {
@@ -33,7 +58,6 @@ class _FirstpageState extends State<Firstpage> {
 
     if (response.statusCode == 200) {
       final List<dynamic> usersJson = json.decode(response.body);
-      // Filter users with role "นักมวย"
       final List<User> users = usersJson
           .map((json) => User.fromJson(json))
           .where((user) => user.role == 'นักมวย')
@@ -53,9 +77,8 @@ class _FirstpageState extends State<Firstpage> {
       },
     );
     if (response.statusCode == 200) {
-      // Successfully deleted
       setState(() {
-        futureUsers = fetchUsers(); // Refresh the user list
+        futureUsers = fetchUsers();
       });
     } else {
       throw Exception('Failed to delete user');
@@ -63,15 +86,13 @@ class _FirstpageState extends State<Firstpage> {
   }
 
   void _editUser(User user) {
-    // Handle user edit logic here
-    // For example, navigate to an edit page and pass user data
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'รายชื่อนักมวย',
           style: TextStyle(
             fontSize: 24,
@@ -80,14 +101,14 @@ class _FirstpageState extends State<Firstpage> {
           ),
         ),
         elevation: 10,
-        backgroundColor: Color.fromARGB(248, 158, 25, 1),
+        backgroundColor: const Color.fromARGB(248, 226, 131, 53),
         actions: [
           if (username != null)
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Center(
                 child: Text(
-                  'ยินดีต้อนรับคุณ $username',
+                  '$username',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -114,11 +135,11 @@ class _FirstpageState extends State<Firstpage> {
           future: futureUsers,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return CircularProgressIndicator();
+              return const CircularProgressIndicator();
             } else if (snapshot.hasError) {
               return Text('Error: ${snapshot.error}');
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Text('No data found');
+              return const Text('No data found');
             } else {
               final users = snapshot.data!;
               return ListView.builder(
@@ -131,11 +152,11 @@ class _FirstpageState extends State<Firstpage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: Icon(Icons.edit),
+                          icon: const Icon(Icons.edit),
                           onPressed: () => _editUser(users[index]),
                         ),
                         IconButton(
-                          icon: Icon(Icons.delete),
+                          icon: const Icon(Icons.delete),
                           onPressed: () => _confirmDelete(users[index]),
                         ),
                       ],
@@ -155,21 +176,21 @@ class _FirstpageState extends State<Firstpage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Confirm Deletion'),
+          title: const Text('Confirm Deletion'),
           content: Text('Are you sure you want to delete ${user.fullname}?'),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
               },
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
-                // deleteUser(user.id); // Call deleteUser method
-                Navigator.of(context).pop(); // Close the dialog
+                // deleteUser(user.id);
+                Navigator.of(context).pop();
               },
-              child: Text('Delete'),
+              child: const Text('Delete'),
             ),
           ],
         );
@@ -179,30 +200,30 @@ class _FirstpageState extends State<Firstpage> {
 }
 
 class User {
-  // final String id; // Added id field
+  // final String id;
   final String fullname;
   final String email;
-  final String role; // Added role field
+  final String role;
 
   User({
-    // required this.id, // Include id in constructor
+    // required this.id,
     required this.fullname,
     required this.email,
-    required this.role, // Include role in constructor
+    required this.role,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      // id: json['_id']['\$oid'], // Assuming the ID is stored in this format
+      // id: json['_id']['\$oid'],
       fullname: json['fullname'],
       email: json['email'],
-      role: json['role'], // Parse role from JSON
+      role: json['role'],
     );
   }
 }
 
 void main() {
-  runApp(MaterialApp(
+  runApp(const MaterialApp(
     home: Firstpage(),
   ));
 }

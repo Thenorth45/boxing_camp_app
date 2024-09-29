@@ -21,6 +21,8 @@ import 'package:boxing_camp_app/page/trainingpage.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'page/mycamp.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -34,7 +36,7 @@ class MyApp extends StatelessWidget {
       future: _getUserRole(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
+          return const CircularProgressIndicator();
         } else {
           String? role = snapshot.data;
           return MaterialApp(
@@ -49,26 +51,27 @@ class MyApp extends StatelessWidget {
             ),
             initialRoute: role == null ? '/login' : _getInitialRoute(role),
             routes: {
-              '/home': (context) => HomePage(),
-              '/addCamp': (context) => AddCampPage(),
+              '/home': (context) => const HomePage(),
+              '/addCamp': (context) => const AddCampPage(),
               '/getcamp': (context) => CampsScreen(),
-              '/addtraining': (context) => ActivityFormPage(),
-              '/profile': (context) => ProfilePage(),
-              '/contact': (context) => ContactPage(),
-              '/login': (context) => LoginScreen(),
-              '/traininghistory': (context) => ActivityHistoryPage(),
-              '/adminpage': (context) => AdminHomePage(),
-              '/boxerpage': (context) => Boxerpage(),
-              '/dashboard': (context) => DashboardPage(),
-              '/editprofile': (context) => EditProfile(userData: {}),
-              '/firstpage': (context) => Firstpage(),
-              '/managerpage': (context) => ManagerHomePage(),
-              '/trainer': (context) => TrainerHomePage(),
-              '/addboxer': (context) => AddBoxerPage(),
-              '/campDetail': (context) => CampDetailScreen(camp: {},),
-              '/traineruser': (context) => Traineruser(),
-              '/boxeruser': (context) => Boxeruser(),
-              '/manegeruser': (context) => Manegeruser(),
+              '/addtraining': (context) => const ActivityFormPage(),
+              '/profile': (context) => const ProfilePage(),
+              '/contact': (context) => const ContactPage(),
+              '/login': (context) => const LoginScreen(),
+              '/traininghistory': (context) => const ActivityHistoryPage(),
+              '/adminpage': (context) => const AdminHomePage(),
+              '/boxerpage': (context) => const Boxerpage(),
+              '/dashboard': (context) => const DashboardPage(),
+              '/editprofile': (context) => EditProfile(userData: const {}),
+              '/firstpage': (context) => const Firstpage(),
+              '/managerpage': (context) => const ManagerHomePage(),
+              '/trainer': (context) => const TrainerHomePage(),
+              '/addboxer': (context) => const AddBoxerPage(),
+              '/campDetail': (context) => CampDetailScreen(camp: const {}),
+              '/traineruser': (context) => const Traineruser(),
+              '/boxeruser': (context) => const Boxeruser(),
+              '/manegeruser': (context) => const Manegeruser(),
+              '/mycamp':(context) => MyCampsScreen(manager: '',),
             },
             home: const LoginScreen(),
           );
@@ -93,40 +96,40 @@ class MyApp extends StatelessWidget {
 
 class BaseAppDrawer extends StatefulWidget {
   final String? username;
+  final String? role;
+  final bool? isLoggedIn;
   final Function(BuildContext) onHomeTap;
   final Function(BuildContext) onCampTap;
   final Function(BuildContext) onContactTap;
 
   const BaseAppDrawer({
-    Key? key,
+    super.key,
     this.username,
+    this.role,
+    this.isLoggedIn,
     required this.onHomeTap,
     required this.onCampTap,
     required this.onContactTap,
-  }) : super(key: key);
+  });
 
   @override
   _BaseAppDrawerState createState() => _BaseAppDrawerState();
 }
 
 class _BaseAppDrawerState extends State<BaseAppDrawer> {
-  bool isLoggedIn = false;
-
+ 
   Future<void> _logout() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove('isLoggedIn');
     await prefs.remove('username');
-
-    setState(() {
-      isLoggedIn = false;
-    });
-
+    await prefs.remove('accessToken');
+    await prefs.remove('refreshToken');
+    await prefs.remove('role');
     Navigator.pushReplacementNamed(context, '/login');
   }
 
   @override
   Widget build(BuildContext context) {
-    String currentRoute = ModalRoute.of(context)?.settings.name ?? '';
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -149,17 +152,10 @@ class _BaseAppDrawerState extends State<BaseAppDrawer> {
             onTap: () => widget.onContactTap(context),
           ),
           ListTile(
-            title: Text('แดชบอร์ด'),
+            title: const Text('แดชบอร์ด'),
             onTap: () => widget.onCampTap(context),
           ),
-          if (currentRoute == '/home')
-          ListTile(
-            title: const Text('ค่ายมวย'),
-            onTap: () {
-              Navigator.pushNamed(context, '/getcamp');
-            },
-          ),
-          if (currentRoute == '/adminpage') ...[
+          if(widget.role! == "ผู้ดูแลระบบ") ...[
             ListTile(
               title: const Text('นักมวย'),
               onTap: () {
@@ -178,9 +174,99 @@ class _BaseAppDrawerState extends State<BaseAppDrawer> {
                 Navigator.pushNamed(context, '/traineruser');
               },
             ),
+            ListTile(
+              title: const Text('ค่ายมวย'),
+              onTap: () {
+                Navigator.pushNamed(context, '/getcamp');
+              },
+            ),
+          ],
+          if(widget.role! == "ผู้จัดการค่ายมวย") ...[
+            ListTile(
+              title: const Text('โปรไฟล์'),
+              onTap: () {
+                Navigator.pushNamed(context, '/profile');
+              },
+            ),
+            ListTile(
+              title: const Text('ค่ายมวยของฉัน'),
+              onTap: () {
+                Navigator.pushNamed(context, '/mycamp');
+              },
+            ),
+            ListTile(
+              title: const Text('นักมวย'),
+              onTap: () {
+                Navigator.pushNamed(context, '/boxeruser');
+              },
+            ),
+            ListTile(
+              title: const Text('ค่ายมวย'),
+              onTap: () {
+                Navigator.pushNamed(context, '/getcamp');
+              },
+            ),
+            ListTile(
+              title: const Text('ประวัติการฝึกซ้อม'),
+              onTap: () {
+                Navigator.pushNamed(context, '/traininghistory');
+              },
+            ),
+          ],
+          if(widget.role! == "นักมวย") ...[
+            ListTile(
+              title: const Text('เพิ่มการฝึก'),
+              onTap: () {
+                Navigator.pushNamed(context, '/addtraining');
+              },
+            ),
+            ListTile(
+              title: const Text('โปรไฟล์'),
+              onTap: () {
+                Navigator.pushNamed(context, '/profile');
+              },
+            ),
+            ListTile(
+              title: const Text('ประวัติการฝึกซ้อม'),
+              onTap: () {
+                Navigator.pushNamed(context, '/traininghistory');
+              },
+            ),
+            ListTile(
+              title: const Text('ค่ายมวย'),
+              onTap: () {
+                Navigator.pushNamed(context, '/getcamp');
+              },
+            ),
+          ],
+          if(widget.role! == "ครูมวย") ...[
+            ListTile(
+              title: const Text('โปรไฟล์'),
+              onTap: () {
+                Navigator.pushNamed(context, '/profile');
+              },
+            ),
+            ListTile(
+              title: const Text('ประวัติการฝึกซ้อม'),
+              onTap: () {
+                Navigator.pushNamed(context, '/traininghistory');
+              },
+            ),
+            ListTile(
+              title: const Text('ค่ายมวย'),
+              onTap: () {
+                Navigator.pushNamed(context, '/getcamp');
+              },
+            ),
+            ListTile(
+              title: const Text('นักมวย'),
+              onTap: () {
+                Navigator.pushNamed(context, '/boxeruser');
+              },
+            ),
           ],
           ListTile(
-            title: isLoggedIn
+            title: widget.isLoggedIn!
                 ? OutlinedButton(
                     onPressed: _logout,
                     style: OutlinedButton.styleFrom(
@@ -190,7 +276,7 @@ class _BaseAppDrawerState extends State<BaseAppDrawer> {
                       ),
                     ),
                     child: const Text(
-                      "Sign Out",
+                      "ออกจากระบบ",
                       style: TextStyle(
                         color: Color.fromARGB(255, 0, 0, 0),
                         fontSize: 16,
@@ -208,7 +294,7 @@ class _BaseAppDrawerState extends State<BaseAppDrawer> {
                       ),
                     ),
                     child: const Text(
-                      "Sign In",
+                      "เข้าสู่ระบบ",
                       style: TextStyle(
                         color: Color.fromARGB(255, 0, 0, 0),
                         fontSize: 16,
